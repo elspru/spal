@@ -2,32 +2,65 @@
 SPAL simple compile to OpenCL.\@
 
 \begin{sidewaystable}
-\begin{tabulary}{\textwidth}{L|L|L}
-SPAL & C & file \\
+\begin{tabulary}{\textwidth}{L|L|L|L}
+Pyash & SPAL & C & file \\
 \midrule 
 \midrule 
+kratswicta kratswichnimna li &
 cardinal social \_top cardinal social name \_nom \_rea & int main () \{ & 
 cardinal\_social\_name.c \\
 \midrule
+swicta hnimna li &
 social \_top name \_nom \_rea & void name () \{ & cardinal\_social\_name.c \\
 \midrule
+hmasta hnimna li&
 mind \_top name \_nom \_rea & inline void name (); &
 library\_cardinal\_social\_name.h \\
- & inline void name\(\) \{ & library\_cardinal\_social\_name.c \\
+& & inline void name\(\) \{ & library\_cardinal\_social\_name.c \\
 \midrule
+krathmasta hnimna li &
 cardinal mind \_top name \_nom \_rea & kernel void name () \{ &
 cardinal\_social\_name.cl \\
+\end{tabulary}
+\begin{tabulary}{\textwidth}{L|L|L}
+\toprule
+htipdoyu txikka hciccu &
+ten \_num \_ins indexFinger \_acc down \_con & \texttt{if (i < 0xA) \{} \\
+\midrule 
+zrundofi  & 
+0 \_num \_return & return 0; \\
 \midrule
-ten \_num \_ins indexFinger \_acc down \_con & \texttt{if (i < 0xA) \{} & all \\
-\midrule 
-finally \_rea & \} & all \\
+fe & 
+\_finally & \} \\
 \midrule
-name \_nom three \_num \_cop & \texttt{name = 3;} & all \\
+hnimna tyindo cyah &
+name \_nom three \_num \_cop & \texttt{name = 3;} \\
 \midrule 
-indexFinger \_nom zero \_num \_cop & \texttt{i = 0;} & all \\
+txikna zrondo cyah &
+indexFinger \_nom zero \_num \_cop & \texttt{i = 0;} \\
 \midrule 
+htipdoyu txikka hciccu hyikdoyu plosliwa htekhromli&
 ten \_num \_ins indexFinger \_acc down \_con 
 indexFinger \_acc one \_num \_ins plus \_rea \_and library program \_rea & 
-\texttt{for \{;i < 0xA;\@ ++i\}\{ library\_program ();\}} & all \\
+\texttt{for \{;i < 0xA;\@ ++i\}\{ library\_program ();\}}  \\
 \end{tabulary}
 \end{sidewaystable}
+
+
+\section{stages of compilation}
+
+\begin{enumerate}
+  \item natural language text (perhaps)
+  \item analytic language text
+  \item SPAL language text
+  \item SPAL encoded tiles
+  \item (OpenCL) C with SPAL names
+  \item (OpenCL) C with natural names (perhaps)
+\end{enumerate}
+
+\section{Method for implementation}
+In theory can use any language for implementation.  
+Though ideally would be a version of C which is similar to the above, 
+so it could then be recoded in SPAL.\@
+
+
