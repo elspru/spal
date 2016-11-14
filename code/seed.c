@@ -22,16 +22,16 @@ contact: streondj at gmail dot com
 #include <stdio.h>  // NOT opencl compatible
 #include <string.h> // NOT opencl compatible// uses memset and memcmp
 
-static const char consonant_group[] = {'p', 't', 'k', 'f', 's', 'c', 'x', 'b',
+const char consonant_group[] = {'p', 't', 'k', 'f', 's', 'c', 'x', 'b',
                                        'd', 'g', 'v', 'z', 'j', 'n', 'm', 'q',
                                        'r', 'l', 'y', 'w', '1', '8', 'h', '.'};
-static const uint8_t consonant_group_magnitude = 23;
-static const char vowel_group[] = {'i', 'a', 'u', 'e', 'o', '6'};
-static const uint8_t vowel_group_magnitude = 6;
-static const char tone_group[] = {'7', '_'};
-static const uint8_t tone_group_magnitude = 2;
+const uint8_t consonant_group_magnitude = 23;
+const char vowel_group[] = {'i', 'a', 'u', 'e', 'o', '6'};
+const uint8_t vowel_group_magnitude = 6;
+const char tone_group[] = {'7', '_'};
+const uint8_t tone_group_magnitude = 2;
 #define CONSONANT_ONE_ENCODE_LONG 32
-static const uint8_t consonant_one_code_group[CONSONANT_ONE_ENCODE_LONG][2] =
+const uint8_t consonant_one_code_group[CONSONANT_ONE_ENCODE_LONG][2] =
     {/* LOC 0 ESS consonant one */
      {(uint8_t)'S', 0x0},  {(uint8_t)'m', 0x1},  {(uint8_t)'k', 0x2},
      {(uint8_t)'y', 0x3},  {(uint8_t)'p', 0x4},  {(uint8_t)'w', 0x5},
@@ -45,37 +45,37 @@ static const uint8_t consonant_one_code_group[CONSONANT_ONE_ENCODE_LONG][2] =
      {(uint8_t)'1', 0x1B}, {(uint8_t)'8', 0x1C}, {(uint8_t)'Q', 0x1D},
      {(uint8_t)'S', 0x1E}, {(uint8_t)'L', 0x1F}};
 #define CONSONANT_TWO_ENCODE_LONG 11
-static const uint8_t consonant_two_code_group[CONSONANT_TWO_ENCODE_LONG][2] = {
+const uint8_t consonant_two_code_group[CONSONANT_TWO_ENCODE_LONG][2] = {
     /* LOC 1 ESS consonant two */
     {(uint8_t)'y', 0}, {(uint8_t)'w', 1}, {(uint8_t)'s', 2}, {(uint8_t)'z', 2},
     {(uint8_t)'l', 3}, {(uint8_t)'f', 4}, {(uint8_t)'v', 4}, {(uint8_t)'c', 5},
     {(uint8_t)'j', 5}, {(uint8_t)'r', 6}, {(uint8_t)'x', 7}};
 #define VOWEL_ENCODE_LONG 8
-static const uint8_t vowel_code_group[VOWEL_ENCODE_LONG][2] = {
+const uint8_t vowel_code_group[VOWEL_ENCODE_LONG][2] = {
     /* LOC 2 ESS vowel */
     {(uint8_t)'i', 0}, {(uint8_t)'a', 1}, {(uint8_t)'u', 2}, {(uint8_t)'e', 3},
     {(uint8_t)'o', 4}, {(uint8_t)'6', 5}, {(uint8_t)'U', 6}, {(uint8_t)'U', 7}};
 #define TONE_ENCODE_LONG 4
-static const uint8_t tone_code_group[TONE_ENCODE_LONG][2] = {
+const uint8_t tone_code_group[TONE_ENCODE_LONG][2] = {
     /* LOC 3 ESS tone */
     {(uint8_t)'M', 0},
     {(uint8_t)'7', 1},
     {(uint8_t)'_', 2},
     {(uint8_t)'U', 3}};
 #define CONSONANT_THREE_ENCODE_LONG 8
-static const uint8_t
+const uint8_t
     consonant_three_code_group[CONSONANT_THREE_ENCODE_LONG][2] = {
         /* LOC 4 ESS consonant three */
         {(uint8_t)'m', 0}, {(uint8_t)'k', 1}, {(uint8_t)'p', 2},
         {(uint8_t)'n', 3}, {(uint8_t)'s', 4}, {(uint8_t)'t', 5},
         {(uint8_t)'f', 6}, {(uint8_t)'c', 7}};
-// static const char secondary_group[] = {'f','s','c','y',
+// const char secondary_group[] = {'f','s','c','y',
 //    'r','w','l','x', 'z','j','v'};
 //#define SECONDARY_SET_LONG 11
-// static const char last_group[] = {'p','t','k','f', 's','c','n','m'};
+// const char last_group[] = {'p','t','k','f', 's','c','n','m'};
 //#define LAST_SET_LONG 8
 
-static inline uint8_t vowel_Q(const char glyph) {
+extern inline uint8_t vowel_Q(const char glyph) {
   uint8_t i;
   for (i = 0; i < vowel_group_magnitude; i++) {
     if (vowel_group[i] == glyph) {
@@ -84,7 +84,7 @@ static inline uint8_t vowel_Q(const char glyph) {
   }
   return FALSE;
 }
-static inline uint8_t tone_Q(const char glyph) {
+extern inline uint8_t tone_Q(const char glyph) {
   uint8_t i;
   for (i = 0; i < tone_group_magnitude; i++) {
     if (tone_group[i] == glyph) {
@@ -93,7 +93,7 @@ static inline uint8_t tone_Q(const char glyph) {
   }
   return FALSE;
 }
-static inline uint8_t consonant_Q(const char glyph) {
+extern inline uint8_t consonant_Q(const char glyph) {
   uint8_t i;
   for (i = 0; i < consonant_group_magnitude; ++i) {
     if (consonant_group[i] == glyph) {
@@ -133,7 +133,7 @@ void text_copy(const uint8_t size, const char *ACC_text, char *DAT_text) {
     DAT_text[i] = ACC_text[i];
   }
 }
-static inline void copy_ACC_text_DAT_tablet(const char *text,
+extern inline void copy_ACC_text_DAT_tablet(const char *text,
                                             const uint8_t text_magnitude,
                                             v16us *tablet,
                                             const uint8_t tablet_offset,
@@ -243,7 +243,7 @@ inline void derive_first_word(const uint8_t ACC_GEN_magnitude,
   }
 }
 
-static inline void code_ACC_consonant_one(const uint8_t type,
+extern inline void code_ACC_consonant_one(const uint8_t type,
                                           const uint8_t consonant_one,
                                           uint16_t *number) {
   uint8_t i, consonant_number = CONSONANT_ONE_ENCODE_LONG;
@@ -269,7 +269,7 @@ static inline void code_ACC_consonant_one(const uint8_t type,
   assert(consonant_number != CONSONANT_ONE_ENCODE_LONG);
 }
 
-static inline void code_ACC_consonant_two(const uint8_t type,
+extern inline void code_ACC_consonant_two(const uint8_t type,
                                           const uint8_t consonant_two,
                                           uint16_t *number) {
   uint8_t i, consonant_number = CONSONANT_TWO_ENCODE_LONG;
@@ -310,7 +310,7 @@ static inline void code_ACC_consonant_two(const uint8_t type,
   assert(consonant_number != CONSONANT_ONE_ENCODE_LONG);
 }
 
-static inline void code_ACC_vowel(const uint8_t type, const uint8_t vowel,
+extern inline void code_ACC_vowel(const uint8_t type, const uint8_t vowel,
                                   uint16_t *number) {
   uint8_t i, vowel_number = VOWEL_ENCODE_LONG;
   // uint16_t start_number = *number;
@@ -350,7 +350,7 @@ static inline void code_ACC_vowel(const uint8_t type, const uint8_t vowel,
   assert(vowel_number != VOWEL_ENCODE_LONG);
 }
 
-static inline void code_ACC_type(const char *word,
+extern inline void code_ACC_type(const char *word,
                                  const uint8_t ACC_GEN_magnitude, uint8_t *type,
                                  uint16_t *number) {
   assert(word != NULL);
@@ -384,7 +384,7 @@ static inline void code_ACC_type(const char *word,
   assert(*type != ERROR_BINARY);
 }
 
-static inline void code_ACC_tone(const uint8_t type, const uint8_t tone,
+extern inline void code_ACC_tone(const uint8_t type, const uint8_t tone,
                                  uint16_t *number) {
   uint8_t i, tone_number = TONE_ENCODE_LONG;
   uint16_t start_number = *number;
@@ -424,7 +424,7 @@ static inline void code_ACC_tone(const uint8_t type, const uint8_t tone,
   assert(tone_number != TONE_ENCODE_LONG);
 }
 
-static inline void code_ACC_consonant_three(const uint8_t type,
+extern inline void code_ACC_consonant_three(const uint8_t type,
                                             const uint8_t consonant_three,
                                             const uint8_t tone,
                                             uint16_t *number) {
@@ -620,7 +620,7 @@ void code_ACC_word_PL(const uint8_t ACC_GEN_magnitude,
     else if binary_phrase_list begining is zero,
     then is part tablet of independentClause
 */
-static inline void establish_ACC_binary_phrase_list(
+extern inline void establish_ACC_binary_phrase_list(
     const uint16_t *code_text, const uint8_t independentClause_magnitude,
     uint16_t *binary_phrase_list, uint16_t *tablet) {
   uint8_t current = 0;
@@ -712,7 +712,7 @@ void tablet_encoding(const uint8_t code_text_magnitude,
   *tablet_magnitude = (uint8_t)(tablet_number);
 }
 
-static inline void detect_ACC_quote_magnitude(const uint8_t text_magnitude,
+extern inline void detect_ACC_quote_magnitude(const uint8_t text_magnitude,
                                               const char *text,
                                               uint8_t *quote_magnitude,
                                               uint8_t *quote_indexFinger) {
@@ -766,7 +766,7 @@ static inline void detect_ACC_quote_magnitude(const uint8_t text_magnitude,
   }
 }
 
-static inline void derive_quote_code(const uint8_t quote_class_magnitude,
+extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
                                      const char *quote_class,
                                      const uint8_t quote_magnitude,
                                      const char *quote_text,
@@ -825,7 +825,7 @@ static inline void derive_quote_code(const uint8_t quote_class_magnitude,
   }
 }
 
-static inline void fit_quote_magnitude(const uint8_t quote_magnitude,
+extern inline void fit_quote_magnitude(const uint8_t quote_magnitude,
                                        uint8_t *quote_tablet_magnitude) {
   assert(quote_tablet_magnitude != NULL);
   assert(quote_magnitude > 0);
@@ -843,7 +843,7 @@ static inline void fit_quote_magnitude(const uint8_t quote_magnitude,
   }
 }
 
-static void convert_last_number_to_quote(uint8_t *last_tablet_indexFinger,
+extern void convert_last_number_to_quote(uint8_t *last_tablet_indexFinger,
                                          v16us *tablet) {
   uint8_t tablet_indexFinger;
   uint8_t number_indexFinger = 0;
@@ -1222,7 +1222,7 @@ inline void play(const v4us coded_name, v8us *hook_list) {
     break;
   }
 }
-static inline void play_quote(const v16us *tablet,
+extern inline void play_quote(const v16us *tablet,
                               const uint8_t tablet_indexFinger,
                               const uint8_t tablet_magnitude,
                               uint16_t *quote_word, v8us *quote_fill) {
@@ -1350,6 +1350,9 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
   uint16_t word = 0;
   uint16_t quote_sort = 0;
   uint8_t code_indexFinger = 0;
+  ((uint16_t *)&code_name)[code_indexFinger] = 44;
+  code_indexFinger++;
+  ((uint16_t *)&code_name)[code_indexFinger] = 44;
   // v8us quote_fill = {{0}};
   indicator_list = ((uint16_t *)tablet)[0];
   indicator = (uint8_t)1 & indicator_list;
@@ -1376,20 +1379,17 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
         word = ((uint16_t **)&tablet)[tablet_number][tablet_indexFinger];
         // printf("BHL word %X\n", (uint)word);
         switch (word) {
+        case NOMINATIVE_CASE:
+          printf("detected nominative case\n");
+          ((uint16_t *)code_name)[code_indexFinger] =
+              (uint16_t)((SOURCE_CASE << POSTURE_TIDBIT) + quote_sort);
+          code_indexFinger++;
+          break;
         case ACCUSATIVE_CASE:
           printf("detected accusative case\n");
-          // if (quote_sort != 0) {
-          //  ((uint16_t *)code_name)[ACCUSATIVE_INDEXFINGER] = quote_sort;
-          // printf("code_name ACC %04X%04X%04X%04X\n",
-          //       (uint)(*code_name)[3], (uint)(*code_name)[2],
-          //       (uint)(*code_name)[1], (uint)(*code_name)[0]);
-          // hook_list[ACCUSATIVE_INDEXFINGER] = quote_fill;
-          // printf("ACC quote_fill %X\n", (uint)quote_fill[0]);
-          // printf("ACC hook_list %X\n",
-          // (uint)hook_list[ACCUSATIVE_INDEXFINGER][0]);
           ((uint16_t *)code_name)[code_indexFinger] =
               (uint16_t)((LOCATION_CASE << POSTURE_TIDBIT) + quote_sort);
-          // }
+          code_indexFinger++;
           break;
         case DATIVE_CASE:
           if (quote_sort != 0) {

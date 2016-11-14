@@ -378,7 +378,7 @@ int seed_program_probe(const cl_device_id device_id, const cl_context context,
                        char *filename, cl_program *program /*,
                             cl_kernel *kernel*/) {
   /* Load the source code containing the kernel*/
-  cl_int return_number;
+  cl_int return_number = 0;
   FILE *fp;
   char *source_text;
   size_t source_size;

@@ -49,7 +49,7 @@ int main(int argument_long, char *argument_list[]) {
   char *text = argument_list[1];
   uint16_t text_long = (uint16_t)strlen(text);
   uint16_t tablet_long = 1;
-  v16us tablet[1] = {0};
+  v16us tablet[1] = {{{0}}};
   uint16_t text_remains = 0;
   printf("%s\n", text);
   text_encoding(text_long, text, &tablet_long, tablet, &text_remains);

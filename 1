@@ -1,0 +1,118 @@
+Making clean in .
+make[1]: Entering directory '/home/vrenpcestc6h/Documents/spal'
+test -z "binary/encoding binary/clprobe binary/spal" || rm -f binary/encoding binary/clprobe binary/spal
+test -z "library/library_seed.a library/library_genericOpenCL.a library/library_dictionary.a " || rm -f library/library_seed.a library/library_genericOpenCL.a library/library_dictionary.a 
+rm -f *.o
+rm -f code/*.o
+make[1]: Leaving directory '/home/vrenpcestc6h/Documents/spal'
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /usr/local/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking for clang... clang
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether clang accepts -g... yes
+checking for clang option to accept ISO C89... none needed
+checking whether clang understands -c and -o together... yes
+checking for style of include used by make... GNU
+checking dependency style of clang... gcc3
+checking for clGetPlatformIDs in -lOpenCL... yes
+checking for clGetDeviceIDs in -lOpenCL... yes
+checking how to run the C preprocessor... clang -E
+checking for grep that handles long lines and -e... /usr/local/bin/grep
+checking for egrep... /usr/local/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/wait.h that is POSIX.1 compatible... yes
+checking whether time.h and sys/time.h may both be included... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking whether byte ordering is bigendian... no
+checking for uid_t in sys/types.h... yes
+checking for pid_t... yes
+checking for size_t... yes
+checking for ranlib... ranlib
+checking for ar... ar
+checking the archiver (ar) interface... ar
+checking assert.h usability... yes
+checking assert.h presence... yes
+checking for assert.h... yes
+checking stdio.h usability... yes
+checking stdio.h presence... yes
+checking for stdio.h... yes
+checking for string.h... (cached) yes
+checking for stdint.h... (cached) yes
+checking for usleep... yes
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating config.h
+config.status: config.h is unchanged
+config.status: executing depfiles commands
+make  all-recursive
+make[1]: Entering directory '/home/vrenpcestc6h/Documents/spal'
+Making all in .
+make[2]: Entering directory '/home/vrenpcestc6h/Documents/spal'
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL -g -O2 -MT code/library_library_seed_a-seed.o -MD -MP -MF code/.deps/library_library_seed_a-seed.Tpo -c -o code/library_library_seed_a-seed.o `test -f 'code/seed.c' || echo './'`code/seed.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/library_library_seed_a-seed.Tpo code/.deps/library_library_seed_a-seed.Po
+rm -f library/library_seed.a
+ar cru library/library_seed.a code/library_library_seed_a-seed.o 
+ar: `u' modifier ignored since `D' is the default (see `U')
+ranlib library/library_seed.a
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL -g -O2 -MT code/library_library_genericOpenCL_a-genericOpenCL.o -MD -MP -MF code/.deps/library_library_genericOpenCL_a-genericOpenCL.Tpo -c -o code/library_library_genericOpenCL_a-genericOpenCL.o `test -f 'code/genericOpenCL.c' || echo './'`code/genericOpenCL.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/library_library_genericOpenCL_a-genericOpenCL.Tpo code/.deps/library_library_genericOpenCL_a-genericOpenCL.Po
+rm -f library/library_genericOpenCL.a
+ar cru library/library_genericOpenCL.a code/library_library_genericOpenCL_a-genericOpenCL.o 
+ar: `u' modifier ignored since `D' is the default (see `U')
+ranlib library/library_genericOpenCL.a
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL -g -O2 -MT code/library_library_dictionary_a-dictionary.o -MD -MP -MF code/.deps/library_library_dictionary_a-dictionary.Tpo -c -o code/library_library_dictionary_a-dictionary.o `test -f 'code/dictionary.c' || echo './'`code/dictionary.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/library_library_dictionary_a-dictionary.Tpo code/.deps/library_library_dictionary_a-dictionary.Po
+rm -f library/library_dictionary.a
+ar cru library/library_dictionary.a code/library_library_dictionary_a-dictionary.o 
+ar: `u' modifier ignored since `D' is the default (see `U')
+ranlib library/library_dictionary.a
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2 -MT code/binary_encoding-encoding.o -MD -MP -MF code/.deps/binary_encoding-encoding.Tpo -c -o code/binary_encoding-encoding.o `test -f 'code/encoding.c' || echo './'`code/encoding.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/binary_encoding-encoding.Tpo code/.deps/binary_encoding-encoding.Po
+clang -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2   -o binary/encoding code/binary_encoding-encoding.o library/library_seed.a library/library_genericOpenCL.a library/library_dictionary.a -lOpenCL -lOpenCL 
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2 -MT code/binary_clprobe-clprobe.o -MD -MP -MF code/.deps/binary_clprobe-clprobe.Tpo -c -o code/binary_clprobe-clprobe.o `test -f 'code/clprobe.c' || echo './'`code/clprobe.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/binary_clprobe-clprobe.Tpo code/.deps/binary_clprobe-clprobe.Po
+clang -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2   -o binary/clprobe code/binary_clprobe-clprobe.o library/library_genericOpenCL.a  -lOpenCL -lOpenCL 
+clang -DHAVE_CONFIG_H -I.    -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2 -MT code/binary_spal-spal_compile.o -MD -MP -MF code/.deps/binary_spal-spal_compile.Tpo -c -o code/binary_spal-spal_compile.o `test -f 'code/spal_compile.c' || echo './'`code/spal_compile.c
+clang: warning: -lOpenCL: 'linker' input unused
+clang: warning: argument unused during compilation: '-L./library'
+mv -f code/.deps/binary_spal-spal_compile.Tpo code/.deps/binary_spal-spal_compile.Po
+clang -I. -O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11  -Wunused -Wconversion -Wdouble-promotion  -lOpenCL -L./library -Waggregate-return -Wextra -I/usr/include/CL  -g -O2   -o binary/spal code/binary_spal-spal_compile.o library/library_seed.a library/library_genericOpenCL.a library/library_dictionary.a -lOpenCL -lOpenCL 
+make[2]: Leaving directory '/home/vrenpcestc6h/Documents/spal'
+make[1]: Leaving directory '/home/vrenpcestc6h/Documents/spal'
+ te1 
+ te2 
+ yep 
+
+0101 A1C2 E029 055E A1C2 E029 0030 04DE 017E 0000 0000 0000 0000 0000 0000 0000 
+0009 143D 0000 019E 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 
+0003 0D9E 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 
+code_name 0 
+code_name 00000000 

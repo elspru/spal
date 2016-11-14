@@ -73,7 +73,8 @@ int main(void) {
 
   cl_ushort4 code_name = {{0, 0, 0, 0}};
   derive_code_name((uint8_t) recipe_magnitude, recipe, &code_name);
-  printf(" %08lX \n", *((uint64_t *)&code_name));
+  printf("code_name %X \n", ((uint16_t *)&code_name)[0]);
+  printf("code_name %08lX \n", *((uint64_t *)&code_name));
   
   return 0;
 }

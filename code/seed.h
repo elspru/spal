@@ -70,6 +70,9 @@ contact: streondj at gmail dot com
 #define INTERIOR_CONTEXT 6
 #define TIME_CONTEXT 7
 
+#define TOPIC_CASE 0x055E
+#define NOMINATIVE_CASE 0x04DE
+
 #define QUOTED_LITERAL_XOR_ADDRESS_INDEXFINGER 8
 #define QUOTED_LITERAL 0
 #define QUOTED_LITERAL_INDEXFINGER 8
