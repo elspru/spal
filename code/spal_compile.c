@@ -40,7 +40,7 @@ int main(void) {
 
   // load text from file
   const char *recipe_text =
-      "kratswicta kratswichnimnali zrundofi fe";
+      "kratswicta kratswichnimna li zrundofi fe";
   const uint16_t recipe_text_magnitude =
       (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 4;
@@ -71,9 +71,10 @@ int main(void) {
   }
   printf("\n");
 
-  cl_ushort4 code_name = {{0, 0, 0, 0}};
+  v4us code_name = {};
   derive_code_name((uint8_t) recipe_magnitude, recipe, &code_name);
   printf("code_name %X \n", ((uint16_t *)&code_name)[0]);
+  printf("code_name %08lX \n", *((uint64_t *)&code_name));
   printf("code_name %08lX \n", *((uint64_t *)&code_name));
   
   return 0;

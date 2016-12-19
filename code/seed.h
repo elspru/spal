@@ -57,6 +57,11 @@ contact: streondj at gmail dot com
 
 #define POSTURE_TIDBIT 14
 #define SCENE_TIDBIT 11
+#define NAME_TIDBIT 5
+#define REGION_TIDBIT 6
+#define VECTOR_THICK_TIDBIT 8
+#define SCALAR_THICK_TIDBIT 11
+#define SORT_DENOTE_TIDBIT 13
 #define SOURCE_CASE 0
 #define WAY_CASE 1
 #define DESTINATION_CASE 2
@@ -160,7 +165,27 @@ contact: streondj at gmail dot com
 #define NINETEEN_WORD 0x6053
 #define TWENTY_WORD 0x804A
 
+#ifndef __has_extension
+  #define __has_extension __has_feature // Compatibility with pre-3.0 compilers.
+#endif
+#ifndef __has_feature         // Optional of course.
+  #define __has_feature(x) 0  // Compatibility with non-clang compilers.
+#endif
+
 typedef unsigned int uint;
+#if __has_feature(attribute_ext_vector_type)
+// This code will only be compiled with the -std=c++11 and -std=gnu++11
+// options, because rvalue references are only standardized in C++11.
+typedef cl_uchar uint8_t;
+typedef cl_ushort uint16_t;
+typedef cl_uint uint32_t;
+typedef cl_ulong uint64_t;
+typedef cl_short4 v4si;
+typedef cl_uchar16 v16uc;
+typedef cl_ushort16 v16us;
+typedef cl_ushort8 v8us;
+typedef unsigned int v4us __attribute__((ext_vector_type(4)));
+#else 
 typedef cl_uchar uint8_t;
 typedef cl_ushort uint16_t;
 typedef cl_uint uint32_t;
@@ -170,6 +195,8 @@ typedef cl_uchar16 v16uc;
 typedef cl_ushort16 v16us;
 typedef cl_ushort8 v8us;
 typedef cl_ushort4 v4us;
+#endif
+
 #define V8US_LONG 16
 /*#define NULL 0*/
 

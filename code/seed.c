@@ -949,6 +949,7 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
       if word is accusative, instrumental, or dative,
           flip the index representation for it.
       if word is deontic-mood then set as ending tablet.
+      otherwise add word as name
   */
   char glyph;
   uint8_t text_indexFinger = 0;
@@ -1074,6 +1075,12 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
             ++tablet_indexFinger;
             break;
           case INSTRUMENTAL_CASE:
+            binary_phrase_list =
+                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
+            ((uint16_t *)tablet)[tablet_indexFinger] = number;
+            ++tablet_indexFinger;
+            break;
+          case TOPIC_CASE:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             ((uint16_t *)tablet)[tablet_indexFinger] = number;
@@ -1350,18 +1357,18 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
   uint16_t word = 0;
   uint16_t quote_sort = 0;
   uint8_t code_indexFinger = 0;
-  ((uint16_t *)&code_name)[code_indexFinger] = 44;
-  code_indexFinger++;
-  ((uint16_t *)&code_name)[code_indexFinger] = 44;
   // v8us quote_fill = {{0}};
   indicator_list = ((uint16_t *)tablet)[0];
   indicator = (uint8_t)1 & indicator_list;
   // printf("indicator %X\n", (uint) indicator);
   // printf("indicator_list %X\n", (uint) indicator_list);
+//
+//
   for (tablet_number = 0; tablet_number < tablet_magnitude; ++tablet_number) {
     for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
       // printf("BHL tablet_indexFinger %X\n", (uint)*tablet_indexFinger);
       // if previous is indicated then quiz if is quote
+      quote_sort = 1;
       if (((indicator_list & (1 << (tablet_indexFinger - 1))) >>
            (tablet_indexFinger - 1)) == indicator &&
           (((uint16_t *)&tablet)[tablet_indexFinger] &
@@ -1389,6 +1396,13 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
           printf("detected accusative case\n");
           ((uint16_t *)code_name)[code_indexFinger] =
               (uint16_t)((LOCATION_CASE << POSTURE_TIDBIT) + quote_sort);
+          code_indexFinger++;
+          break;
+        case TOPIC_CASE:
+          printf("detected topic case\n");
+          ((uint16_t *)code_name)[code_indexFinger] =
+              (uint16_t)((WAY_CASE << POSTURE_TIDBIT) + (DISCOURSE_CONTEXT <<
+SCENE_TIDBIT) + quote_sort);
           code_indexFinger++;
           break;
         case DATIVE_CASE:
