@@ -38,7 +38,7 @@ int main(void) {
   // convert binary to OpenCL source code
 
   // load text from file
-  const char *recipe_text = "kratswicta kratswichnimna li zrundofi fe";
+  const char *recipe_text = "kratta krathnimna li zrundofi fe";
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 4;
   v16us recipe[8];
@@ -74,6 +74,8 @@ int main(void) {
   printf("code_name %04X %04X %04X %04X\n", (cl_ushort)code_name.s0,
          code_name.s1, code_name.s2, code_name.s3);
   printf("code_name 64bit %016lX\n", v4us_uint64_translation(code_name));
+  char produce_text[256] = "";
+  code_opencl_translate(recipe_magnitude, recipe, produce_text);
 
   return 0;
 }

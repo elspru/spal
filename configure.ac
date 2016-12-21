@@ -6,11 +6,11 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 
 # Custom Define
-MY_CFLAGS="-O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11 \
+MY_CFLAGS="-O2 -Iinclude -Wall -Wpedantic -std=c11 \
  -Wunused -Wconversion\
  -Wdouble-promotion   \
  -Waggregate-return -Wextra -I/usr/include/CL"
-MY_GCCFLAGS="-O2 -Iinclude -Wall -Wno-strict-aliasing -Wpedantic -std=c11 \
+MY_GCCFLAGS="-O2 -Iinclude -Wall -Wpedantic -std=c11 \
   -Wno-coverage-mismatch\
  -Wlogical-op -Wunused -Wconversion\
  -Wno-aggressive-loop-optimizations -Wunsafe-loop-optimizations\

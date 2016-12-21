@@ -265,5 +265,9 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
 
 uint16_t v16us_read(const uint8_t indexFinger, const v16us vector);
 uint64_t v4us_uint64_translation(const v4us vector);
+void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
+                           char *produce_text);
+void phrase_situate(const v16us tablet, const uint16_t phrase_code,
+                    uint8_t *phrase_place, uint8_t *phrase_long);
 
 #endif

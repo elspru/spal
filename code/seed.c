@@ -1762,3 +1762,50 @@ inline void play_text(const uint16_t max_tablet_magnitude, const v16us *tablet,
                            &tablet[tablet_indexFinger], coded_name, hook_list);
   }
 }
+
+void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
+                           char *produce_text) {
+  assert(recipe_magnitude > 0);
+  assert(recipe != NULL);
+  assert(produce_text != NULL);
+  v4us code_name = {0};
+  derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
+  uint64_t code_number = v4us_uint64_translation(code_name);
+
+    uint8_t phrase_place = 0;
+    uint8_t phrase_long = 0;
+  switch (code_number) {
+  case 0x580100010000l:
+    // probe topic
+    // if cardinal  declare main
+    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place, &phrase_long);
+    break;
+  }
+  produce_text[0] = 'a';
+}
+
+uint16_t grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code){
+  switch(grammaticalCase_code) {
+    case 0:
+      return NOMINATIVE_CASE;
+      break;
+    case 0xB:
+      return TOPIC_CASE;
+      break;
+    default:
+      assert(1==0); // wrong grammaticalCase_code
+      return 0;
+  }
+}
+
+void phrase_situate(const v16us tablet, const uint16_t phrase_code,
+                    uint8_t *phrase_place, uint8_t *phrase_long) {
+  assert(tablet.s0 != 0);
+  assert(phrase_place != NULL);
+  assert(phrase_long != NULL);
+  uint16_t grammaticalCase_code = phrase_code >> SCENE_TIDBIT;
+  printf("grammaticalCase_code %04X \n", grammaticalCase_code);
+  uint16_t grammaticalCase_word =
+grammaticalCase_code_word_translate(grammaticalCase_code);
+  printf("grammaticalCase_word %04X \n", grammaticalCase_word);
+}
