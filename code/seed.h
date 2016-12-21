@@ -19,6 +19,7 @@ contact: streondj at gmail dot com
 #ifndef SEED_H
 #define SEED_H
 
+
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
@@ -165,14 +166,42 @@ contact: streondj at gmail dot com
 #define NINETEEN_WORD 0x6053
 #define TWENTY_WORD 0x804A
 
+
 #ifndef __has_extension
   #define __has_extension __has_feature // Compatibility with pre-3.0 compilers.
 #endif
 #ifndef __has_feature         // Optional of course.
   #define __has_feature(x) 0  // Compatibility with non-clang compilers.
 #endif
+#ifndef __has_builtin         // Optional of course.
+  #define __has_builtin(x) 0  // Compatibility with non-clang compilers.
+#endif
 
 typedef unsigned int uint;
+
+#if __has_builtin(__builtin_shufflevector)
+#define shuffle __builtin_shufflevector
+#endif
+#if defined(_MSC_VER)
+     /* Microsoft C/C++-compatible compiler */
+     #include <intrin.h>
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+     /* GCC-compatible compiler, targeting x86/x86-64 */
+     #include <x86intrin.h>
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+     /* GCC-compatible compiler, targeting ARM with NEON */
+     #include <arm_neon.h>
+#elif defined(__GNUC__) && defined(__IWMMXT__)
+     /* GCC-compatible compiler, targeting ARM with WMMX */
+     #include <mmintrin.h>
+#elif (defined(__GNUC__) || defined(__xlC__)) && (defined(__VEC__) || defined(__ALTIVEC__))
+     /* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
+     #include <altivec.h>
+#elif defined(__GNUC__) && defined(__SPE__)
+     /* GCC-compatible compiler, targeting PowerPC with SPE */
+     #include <spe.h>
+#endif
+
 #if __has_feature(attribute_ext_vector_type)
 // This code will only be compiled with the -std=c++11 and -std=gnu++11
 // options, because rvalue references are only standardized in C++11.

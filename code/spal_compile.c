@@ -73,9 +73,10 @@ int main(void) {
 
   v4us code_name = {0};
   derive_code_name((uint8_t) recipe_magnitude, recipe, &code_name);
-  printf("code_name %02X \n", ((uint16_t )code_name.s0));
-  printf("code_name %08X \n", *((uint32_t *)&code_name));
-  printf("code_name %016lX \n", *((uint64_t *)&code_name));
+  printf("code_name %04X %04X %04X %04X\n", (cl_ushort)code_name.s0, code_name.s1, code_name.s2, code_name.s3);
+  printf("code_name 64bit %016lX\n", (uint64_t)(((uint64_t)code_name.s0 << (16*0)) +
+((uint64_t)code_name.s1 << (16*1)) + ((uint64_t)code_name.s2 << (16*2)) +
+((uint64_t)code_name.s3 << (16*3))));
   
   return 0;
 }

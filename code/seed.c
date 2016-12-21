@@ -1350,6 +1350,28 @@ void burden_hook_list(const uint8_t tablet_magnitude, const v16us *tablet,
       break;
   }
 }
+void sort_code_name(v4us *code_name) {
+  v4us temp = (*code_name).xyzw;
+  printf("temp1 %04X %04X %04X %04X\n", (cl_ushort)temp.s0, temp.s1, temp.s2, temp.s3);
+  if (temp.s0 > temp.s1) { temp = temp.s1023; }
+  printf("temp2 %04X %04X %04X %04X\n",  (cl_ushort) temp.s0, (cl_ushort)temp.s1, temp.s2, temp.s3);
+  if (temp.s1 > temp.s2) { temp = temp.s0213; }
+  printf("temp3 %04X %04X %04X %04X\n", temp.s0, temp.s1, temp.s2, temp.s3);
+  if (temp.s0 > temp.s1) { temp = temp.s1023; }
+  printf("temp-sort %04X %04X %04X %04X\n", temp.s0, temp.s1, temp.s2, temp.s3);
+  *code_name = temp.xyzw;
+}
+void v4us_grow(uint8_t code_indexFinger, uint8_t maximum_code_indexFinger, 
+  uint16_t code_number, v4us * code_name) {
+  if (code_indexFinger >= maximum_code_indexFinger) return;
+  else if (code_indexFinger == 0) { 
+          (*code_name).s0 = code_number;}
+  else if (code_indexFinger == 1) {
+          (*code_name).s1 = code_number;
+  } else if (code_indexFinger == 2) {
+          (*code_name).s2 = code_number;
+  }
+}
 void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
                       v4us *code_name) {
   assert(tablet_magnitude != 0);
@@ -1360,6 +1382,7 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
   uint8_t indicator = 0;
   uint8_t tablet_number = 0;
   uint8_t exit = FALSE;
+  uint8_t maximum_code_indexFinger = 3;
   uint16_t word = 0;
   uint16_t quote_sort = 0;
   uint8_t code_indexFinger = 0;
@@ -1387,6 +1410,7 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
       // if it is, then copy it over to coded name.
       // if current is indicated then quiz if is case or
       // verb
+      uint16_t code_number;
       if (((indicator_list & (1 << tablet_indexFinger)) >>
            tablet_indexFinger) == indicator) {
         word = ((uint16_t **)&tablet)[tablet_number][tablet_indexFinger];
@@ -1394,8 +1418,11 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
         switch (word) {
         case NOMINATIVE_CASE:
           printf("detected nominative case\n");
-          ((uint16_t *)code_name)[code_indexFinger] =
+          //((uint16_t *)code_name)[code_indexFinger] =
+          code_number = 
               (uint16_t)((SOURCE_CASE << POSTURE_TIDBIT) + quote_sort);
+          v4us_grow(code_indexFinger, maximum_code_indexFinger, code_number,
+code_name);
           code_indexFinger++;
           break;
         case ACCUSATIVE_CASE:
@@ -1406,9 +1433,11 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
           break;
         case TOPIC_CASE:
           printf("detected topic case\n");
-          ((uint16_t *)code_name)[code_indexFinger] =
+          code_number = 
               (uint16_t)((WAY_CASE << POSTURE_TIDBIT) + (DISCOURSE_CONTEXT <<
 SCENE_TIDBIT) + quote_sort);
+          v4us_grow(code_indexFinger, maximum_code_indexFinger, code_number,
+code_name);
           code_indexFinger++;
           break;
         case DATIVE_CASE:
@@ -1436,6 +1465,7 @@ SCENE_TIDBIT) + quote_sort);
     if (exit == TRUE)
       break;
   }
+  sort_code_name(code_name);
 }
 inline void play_independentClause(const uint8_t tablet_magnitude,
                                    const v16us *tablet, v4us *coded_name,
