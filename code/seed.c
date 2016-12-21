@@ -1068,6 +1068,12 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
           //
           // break;
 
+          case NOMINATIVE_CASE:
+            binary_phrase_list =
+                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
+            ((uint16_t *)tablet)[tablet_indexFinger] = number;
+            ++tablet_indexFinger;
+            break;
           case ACCUSATIVE_CASE:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
