@@ -1629,8 +1629,7 @@ inline void play_independentClause(const uint8_t tablet_magnitude,
     for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
       // if current is indicated then quiz if is case or
       // verb
-      if (((indicator_list & (1 << tablet_indexFinger)) >>
-           tablet_indexFinger) == indicator) {
+      if (((indicator_list >> tablet_indexFinger) & (1)) == indicator) {
         word = ((uint16_t **)&tablet)[tablet_number][tablet_indexFinger];
         // printf("word %X\n", (uint)word);
         switch (word) {
@@ -1772,29 +1771,31 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
   uint64_t code_number = v4us_uint64_translation(code_name);
 
-    uint8_t phrase_place = 0;
-    uint8_t phrase_long = 0;
+  uint8_t phrase_place = 0;
+  uint8_t phrase_long = 0;
   switch (code_number) {
   case 0x580100010000l:
     // probe topic
     // if cardinal  declare main
-    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place, &phrase_long);
+    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place,
+                   &phrase_long);
     break;
   }
   produce_text[0] = 'a';
 }
 
-uint16_t grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code){
-  switch(grammaticalCase_code) {
-    case 0:
-      return NOMINATIVE_CASE;
-      break;
-    case 0xB:
-      return TOPIC_CASE;
-      break;
-    default:
-      assert(1==0); // wrong grammaticalCase_code
-      return 0;
+uint16_t
+grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code) {
+  switch (grammaticalCase_code) {
+  case 0:
+    return NOMINATIVE_CASE;
+    break;
+  case 0xB:
+    return TOPIC_CASE;
+    break;
+  default:
+    assert(1 == 0); // wrong grammaticalCase_code
+    return 0;
   }
 }
 
@@ -1803,9 +1804,22 @@ void phrase_situate(const v16us tablet, const uint16_t phrase_code,
   assert(tablet.s0 != 0);
   assert(phrase_place != NULL);
   assert(phrase_long != NULL);
-  uint16_t grammaticalCase_code = phrase_code >> SCENE_TIDBIT;
+  const uint16_t grammaticalCase_code = phrase_code >> SCENE_TIDBIT;
   printf("grammaticalCase_code %04X \n", grammaticalCase_code);
-  uint16_t grammaticalCase_word =
-grammaticalCase_code_word_translate(grammaticalCase_code);
+  const uint16_t grammaticalCase_word =
+      grammaticalCase_code_word_translate(grammaticalCase_code);
   printf("grammaticalCase_word %04X \n", grammaticalCase_word);
+  const uint16_t binary_phrase_list = (uint16_t)tablet.s0;
+  const uint16_t referential = (uint8_t)binary_phrase_list & 1;
+  uint8_t indexFinger = 0;
+  for (indexFinger = 0; indexFinger < BINARY_PHRASE_LIST_LENGTH;
+       ++indexFinger) {
+    if (((binary_phrase_list >> indexFinger) & 1) == referential) {
+      if (grammaticalCase_word == v16us_read(indexFinger, tablet)) {
+        printf("found at %X\n", indexFinger);
+        *phrase_place = indexFinger;
+        break;
+      }
+    }
+  }
 }

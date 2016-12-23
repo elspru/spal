@@ -1,0 +1,17 @@
+Temporary header file '/tmp/pMMc9nFi98/dump1.h' with the following content will be compiled to create GCC translation unit dump:
+
+  // add includes
+  #include "/home/vrenpces/Documents/spal/code/spal.h"
+  #include "/home/vrenpces/Documents/spal/code/dictionary.h"
+  #include "/home/vrenpces/Documents/spal/code/genericOpenCL.h"
+  #include "/home/vrenpces/Documents/spal/code/seed.h"
+
+  // add classes
+  _cl_buffer_region* tmp_add_class_0;
+  _cl_image_desc* tmp_add_class_1;
+  _cl_image_format* tmp_add_class_2;
+  pthread_attr_t* tmp_add_class_3;
+
+The GCC parameters:
+  gcc -fdump-translation-unit -fkeep-inline-functions -c -x c++-header -fpermissive -w "/tmp/pMMc9nFi98/dump1.h"
+
