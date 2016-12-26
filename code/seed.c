@@ -42,26 +42,40 @@ const uint8_t consonant_one_code_group[CONSONANT_ONE_ENCODE_LONG][2] =
      {(uint8_t)'g', 0x12}, {(uint8_t)'d', 0x13}, {(uint8_t)'z', 0x14},
      {(uint8_t)'j', 0x15}, {(uint8_t)'v', 0x16}, {(uint8_t)'L', 0x17},
      {(uint8_t)'S', 0x18}, {(uint8_t)'q', 0x19}, {(uint8_t)'x', 0x1A},
-     {(uint8_t)'1', 0x1B}, {(uint8_t)'8', 0x1C}, {(uint8_t)'Q', 0x1D},
+     {(uint8_t)'4', 0x1B}, {(uint8_t)'8', 0x1C}, {(uint8_t)'Q', 0x1D},
      {(uint8_t)'S', 0x1E}, {(uint8_t)'L', 0x1F}};
+#define CONSONANT_ONE_VOCAL_LONG 3
+const uint8_t consonant_one_vocal_group[CONSONANT_ONE_VOCAL_LONG][2] = {
+    {(uint8_t)'b', 0x11}, {(uint8_t)'g', 0x12}, {(uint8_t)'d', 0x13}};
+#define CONSONANT_ONE_
 #define CONSONANT_TWO_ENCODE_LONG 11
 const uint8_t consonant_two_code_group[CONSONANT_TWO_ENCODE_LONG][2] = {
     /* LOC 1 ESS consonant two */
     {(uint8_t)'y', 0}, {(uint8_t)'w', 1}, {(uint8_t)'s', 2}, {(uint8_t)'z', 2},
     {(uint8_t)'l', 3}, {(uint8_t)'f', 4}, {(uint8_t)'v', 4}, {(uint8_t)'c', 5},
     {(uint8_t)'j', 5}, {(uint8_t)'r', 6}, {(uint8_t)'x', 7}};
+#define CONSONANT_TWO_VOCAL_LONG 8
+const uint8_t consonant_two_vocal_group[CONSONANT_TWO_VOCAL_LONG][2] = {
+    /* LOC 1 ESS consonant two */
+    {(uint8_t)'y', 0}, {(uint8_t)'w', 1}, {(uint8_t)'z', 2}, {(uint8_t)'l', 3},
+    {(uint8_t)'v', 4}, {(uint8_t)'j', 5}, {(uint8_t)'r', 6}, {(uint8_t)'x', 7}};
+#define CONSONANT_TWO_ASPIRATE_LONG 8
+const uint8_t consonant_two_aspirate_group[CONSONANT_TWO_ASPIRATE_LONG][2] = {
+    /* LOC 1 ESS consonant two */
+    {(uint8_t)'y', 0}, {(uint8_t)'w', 1}, {(uint8_t)'s', 2}, {(uint8_t)'l', 3},
+    {(uint8_t)'f', 4}, {(uint8_t)'c', 5}, {(uint8_t)'r', 6}, {(uint8_t)'x', 7}};
 #define VOWEL_ENCODE_LONG 8
 const uint8_t vowel_code_group[VOWEL_ENCODE_LONG][2] = {
     /* LOC 2 ESS vowel */
     {(uint8_t)'i', 0}, {(uint8_t)'a', 1}, {(uint8_t)'u', 2}, {(uint8_t)'e', 3},
-    {(uint8_t)'o', 4}, {(uint8_t)'6', 5}, {(uint8_t)'U', 6}, {(uint8_t)'U', 7}};
+    {(uint8_t)'o', 4}, {(uint8_t)'6', 5}, {(uint8_t)'1', 6}, {(uint8_t)'3', 7}};
 #define TONE_ENCODE_LONG 4
 const uint8_t tone_code_group[TONE_ENCODE_LONG][2] = {
     /* LOC 3 ESS tone */
     {(uint8_t)'M', 0},
     {(uint8_t)'7', 1},
     {(uint8_t)'_', 2},
-    {(uint8_t)'U', 3}};
+    {(uint8_t)'5', 3}};
 #define CONSONANT_THREE_ENCODE_LONG 8
 const uint8_t consonant_three_code_group[CONSONANT_THREE_ENCODE_LONG][2] = {
     /* LOC 4 ESS consonant three */
@@ -1008,7 +1022,7 @@ void v4us_write(uint8_t code_indexFinger, uint8_t maximum_code_indexFinger,
   } else if (code_indexFinger == 2)
     (*code_name).s2 = code_number;
 }
-uint16_t v16us_read(const uint8_t indexFinger, v16us vector) {
+uint16_t v16us_read(const uint8_t indexFinger, const v16us vector) {
   assert(indexFinger < 16);
   switch (indexFinger) {
   case 0:
@@ -1762,28 +1776,6 @@ inline void play_text(const uint16_t max_tablet_magnitude, const v16us *tablet,
   }
 }
 
-void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
-                           char *produce_text) {
-  assert(recipe_magnitude > 0);
-  assert(recipe != NULL);
-  assert(produce_text != NULL);
-  v4us code_name = {0};
-  derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
-  uint64_t code_number = v4us_uint64_translation(code_name);
-
-  uint8_t phrase_place = 0;
-  uint8_t phrase_long = 0;
-  switch (code_number) {
-  case 0x580100010000l:
-    // probe topic
-    // if cardinal  declare main
-    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place,
-                   &phrase_long);
-    break;
-  }
-  produce_text[0] = 'a';
-}
-
 uint16_t
 grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code) {
   switch (grammaticalCase_code) {
@@ -1812,14 +1804,188 @@ void phrase_situate(const v16us tablet, const uint16_t phrase_code,
   const uint16_t binary_phrase_list = (uint16_t)tablet.s0;
   const uint16_t referential = (uint8_t)binary_phrase_list & 1;
   uint8_t indexFinger = 0;
-  for (indexFinger = 0; indexFinger < BINARY_PHRASE_LIST_LENGTH;
-       ++indexFinger) {
+  uint8_t found = FALSE;
+  uint8_t phrase_termination = 0;
+  uint8_t phrase_begin = 0;
+  for (indexFinger = BINARY_PHRASE_LIST_LENGTH - 1; indexFinger >= 0;
+       --indexFinger) {
     if (((binary_phrase_list >> indexFinger) & 1) == referential) {
-      if (grammaticalCase_word == v16us_read(indexFinger, tablet)) {
-        printf("found at %X\n", indexFinger);
-        *phrase_place = indexFinger;
+      if (found == TRUE) {
+        phrase_begin = indexFinger + 1;
+        *phrase_place = phrase_begin;
+        *phrase_long = (phrase_termination + 1) - phrase_begin;
         break;
+      }
+      if (grammaticalCase_word == v16us_read(indexFinger, tablet)) {
+        phrase_termination = indexFinger;
+        found = TRUE;
       }
     }
   }
+}
+void consonant_one_code_translation(const uint8_t consonant_one_code,
+                                    uint8_t *vocal, char *text) {
+  assert(consonant_one_code < CONSONANT_ONE_ENCODE_LONG);
+  assert(text != NULL);
+  uint8_t indexFinger = 0;
+  text[0] = (char)consonant_one_code_group[consonant_one_code][0];
+  *vocal = FALSE;
+  for (indexFinger = CONSONANT_ONE_VOCAL_LONG; indexFinger < 0; --indexFinger) {
+    if (consonant_one_code == consonant_one_vocal_group[indexFinger][1]) {
+      *vocal = TRUE;
+      break;
+    }
+  }
+}
+void consonant_two_code_translation(const uint8_t consonant_two_code,
+                                    const uint8_t vocal, char *text) {
+  assert(consonant_two_code < CONSONANT_TWO_ENCODE_LONG);
+  assert(vocal == TRUE || vocal == FALSE);
+  assert(text != NULL);
+  if (vocal == TRUE) {
+    text[0] = (char)consonant_two_vocal_group[consonant_two_code][0];
+  } else {
+    text[0] = (char)consonant_two_aspirate_group[consonant_two_code][0];
+  }
+}
+void vowel_code_translation(const uint8_t vowel_code, char *text) {
+  assert(vowel_code < VOWEL_ENCODE_LONG);
+  assert(text != NULL);
+  text[0] = (char)vowel_code_group[vowel_code][0];
+}
+void consonant_three_code_translation(const uint8_t consonant_three_code,
+                                      char *text) {
+  assert(consonant_three_code < VOWEL_ENCODE_LONG);
+  assert(text != NULL);
+  text[0] = (char)consonant_three_code_group[consonant_three_code][0];
+}
+void tone_code_translation(const uint8_t tone_code, uint8_t *tone_letter,
+                           char *text) {
+  assert(tone_code < TONE_ENCODE_LONG);
+  assert(tone_letter != NULL);
+  assert(text != NULL);
+  char tone = (char)tone_code_group[tone_code][0];
+  if (tone == 'M') {
+    *tone_letter = FALSE;
+  } else {
+    text[0] = tone;
+    *tone_letter = TRUE;
+  }
+}
+void short_root_code_translation(const uint16_t word_code, uint16_t *text_long,
+                                 char *text) {
+  assert(text_long != NULL);
+  assert(text != NULL);
+  // set first h
+  text[0] = 'h';
+  const uint8_t consonant_one_code =
+      (word_code & SHORT_ROOT_CONSONANT_ONE_MASK) >>
+      SHORT_ROOT_CONSONANT_ONE_BEGIN;
+  assert(consonant_one_code < CONSONANT_ONE_ENCODE_LONG);
+  uint8_t vocal = FALSE;
+  consonant_one_code_translation(consonant_one_code, &vocal, text + 1);
+  const uint8_t vowel_code =
+      (word_code & SHORT_ROOT_VOWEL_MASK) >> SHORT_ROOT_VOWEL_BEGIN;
+  vowel_code_translation(vowel_code, text + 2);
+  const uint8_t tone_code =
+      (word_code & SHORT_ROOT_TONE_MASK) >> SHORT_ROOT_TONE_BEGIN;
+  uint8_t tone_letter = FALSE;
+  tone_code_translation(tone_code, &tone_letter, text + 3);
+  uint8_t consonant_three_place = 3;
+  if (tone_letter == TRUE) {
+    consonant_three_place = 4;
+  }
+  const uint8_t consonant_three_code =
+      (word_code & SHORT_ROOT_CONSONANT_THREE_MASK) >>
+      SHORT_ROOT_CONSONANT_THREE_BEGIN;
+  consonant_three_code_translation(consonant_three_code,
+                                   text + consonant_three_place);
+}
+void long_root_code_translation(const uint16_t word_code, uint16_t *text_long,
+                                char *text) {
+  assert(text_long != NULL);
+  assert(text != NULL);
+  // set first h
+  text[0] = 'h';
+  const uint8_t consonant_one_code =
+      (word_code & LONG_ROOT_CONSONANT_ONE_MASK) >>
+      LONG_ROOT_CONSONANT_ONE_BEGIN;
+  uint8_t vocal = FALSE;
+  consonant_one_code_translation(consonant_one_code, &vocal, text);
+  const uint8_t consonant_two_code =
+      (word_code & LONG_ROOT_CONSONANT_TWO_MASK) >>
+      LONG_ROOT_CONSONANT_TWO_BEGIN;
+  consonant_two_code_translation(consonant_two_code, vocal, text + 1);
+  printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
+  const uint8_t vowel_code =
+      (word_code & LONG_ROOT_VOWEL_MASK) >> LONG_ROOT_VOWEL_BEGIN;
+  vowel_code_translation(vowel_code, text + 2);
+  const uint8_t tone_code =
+      (word_code & LONG_ROOT_TONE_MASK) >> LONG_ROOT_TONE_BEGIN;
+  uint8_t tone_letter = FALSE;
+  tone_code_translation(tone_code, &tone_letter, text + 3);
+  uint8_t consonant_three_place = 3;
+  if (tone_letter == TRUE) {
+    consonant_three_place = 4;
+  }
+  const uint8_t consonant_three_code =
+      (word_code & LONG_ROOT_CONSONANT_THREE_MASK) >>
+      LONG_ROOT_CONSONANT_THREE_BEGIN;
+  consonant_three_code_translation(consonant_three_code,
+                                   text + consonant_three_place);
+}
+
+void word_code_translation(const uint16_t word_code, uint16_t *text_long,
+                           char *text) {
+  assert(text != NULL);
+  const uint16_t sort = word_code & CONSONANT_ONE_MASK;
+  switch (sort) {
+  // case short root
+  case SHORT_ROOT_DENOTE:
+    short_root_code_translation(word_code, text_long, text);
+    break;
+  // case long grammar
+  case LONG_GRAMMAR_DENOTE:
+    break;
+  // case short grammar
+  case SHORT_GRAMMAR_DENOTE:
+    break;
+  // case quote denote
+  case QUOTE_DENOTE:
+    break;
+  // default long root
+  default:
+    long_root_code_translation(word_code, text_long, text);
+    break;
+  }
+}
+
+void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
+                           char *produce_text) {
+  assert(recipe_magnitude > 0);
+  assert(recipe != NULL);
+  assert(produce_text != NULL);
+  v4us code_name = {0};
+  derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
+  uint64_t code_number = v4us_uint64_translation(code_name);
+
+  uint8_t phrase_place = 0;
+  uint8_t phrase_long = 0;
+  uint16_t word_code = 0;
+  uint16_t text_long = 64;
+  char text[64] = {0};
+  switch (code_number) {
+  case 0x580100010000l:
+    // probe topic
+    // if cardinal  declare main
+    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place,
+                   &phrase_long);
+    printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
+    // get phrase and translate to text
+    word_code = v16us_read(phrase_place, *recipe);
+    word_code_translation(word_code, &text_long, text);
+    break;
+  }
+  printf("text %s\n", text);
+  produce_text[0] = 'a';
 }
