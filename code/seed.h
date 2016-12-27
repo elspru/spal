@@ -42,6 +42,7 @@ contact: streondj at gmail dot com
 #define SHORT_GRAMMAR_DENOTE 30
 #define CONSONANT_ONE_THICK 5
 #define CONSONANT_ONE_MASK 0x1F
+#define SHORT_SORT_MASK 0x7
 #define SHORT_ROOT_CONSONANT_ONE_MASK 0xF8
 #define SHORT_ROOT_CONSONANT_ONE_BEGIN 0x3
 #define LONG_GRAMMAR_CONSONANT_TWO_MASK 0x700
@@ -82,6 +83,8 @@ contact: streondj at gmail dot com
 #define SIXTEEN_BYTE_QUOTED 0x4
 #define SILENCE_GLYPH '.'
 #define SILENCE_GLYPH_LONG 1
+
+#define CARDINAL_WORD 0xA1C2
 
 #define POSTURE_TIDBIT 14
 #define SCENE_TIDBIT 11
@@ -295,8 +298,11 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
 uint16_t v16us_read(const uint8_t indexFinger, const v16us vector);
 uint64_t v4us_uint64_translation(const v4us vector);
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
-                           char *produce_text);
-void phrase_situate(const v16us tablet, const uint16_t phrase_code,
-                    uint8_t *phrase_place, uint8_t *phrase_long);
+                           uint16_t *text_long, char *produce_text,
+                           uint16_t *filename_long, char *filename,
+                           uint16_t *file_sort);
 
+void derive_filename(const uint16_t filename_long, const char *filename,
+                     const uint16_t file_sort, uint16_t *gross_filename_long,
+                     char *gross_filename);
 #endif

@@ -74,9 +74,25 @@ int main(void) {
   printf("code_name %04X %04X %04X %04X\n", (cl_ushort)code_name.s0,
          code_name.s1, code_name.s2, code_name.s3);
   printf("code_name 64bit %016lX\n", v4us_uint64_translation(code_name));
+  uint16_t produce_text_long = 256;
   char produce_text[256] = "";
-  code_opencl_translate(recipe_magnitude, recipe, produce_text);
+  uint16_t filename_long = 64;
+  char filename[64] = "";
+  uint16_t gross_filename_long = 64;
+  char gross_filename[64] = "";
+  uint16_t file_sort = 0;
+  code_opencl_translate(recipe_magnitude, recipe, &produce_text_long,
+                        produce_text, &filename_long, filename, &file_sort);
+  // get gross filename based on file sort and filename
 
+  derive_filename(filename_long, filename, file_sort, &gross_filename_long,
+                  gross_filename);
+  // create file if not existing
+  // append to file buffer
+  printf("text_long %X text '%s' filename_long %X filename '%s' file_sort %X "
+         "gross_filename %s\n",
+         produce_text_long, produce_text, filename_long, filename, file_sort,
+         gross_filename);
   return 0;
 }
 

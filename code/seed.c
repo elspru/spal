@@ -892,7 +892,7 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
     *quote_word |= NUMBER_CLASS << QUOTED_CLASS_INDEXFINGER;
     break;
   default:
-    printf("unknown quote_number %X\n", (uint)quote_number);
+    // printf("unknown quote_number %X\n", (uint)quote_number);
     assert(1 == 0);
     break;
   }
@@ -1877,115 +1877,167 @@ void short_root_code_translation(const uint16_t word_code, uint16_t *text_long,
   assert(text_long != NULL);
   assert(text != NULL);
   // set first h
+  uint16_t word_long = 0;
   text[0] = 'h';
+  ++word_long;
   const uint8_t consonant_one_code =
       (word_code & SHORT_ROOT_CONSONANT_ONE_MASK) >>
       SHORT_ROOT_CONSONANT_ONE_BEGIN;
   assert(consonant_one_code < CONSONANT_ONE_ENCODE_LONG);
   uint8_t vocal = FALSE;
-  consonant_one_code_translation(consonant_one_code, &vocal, text + 1);
+  consonant_one_code_translation(consonant_one_code, &vocal, text + word_long);
+  ++word_long;
   const uint8_t vowel_code =
       (word_code & SHORT_ROOT_VOWEL_MASK) >> SHORT_ROOT_VOWEL_BEGIN;
-  vowel_code_translation(vowel_code, text + 2);
+  vowel_code_translation(vowel_code, text + word_long);
+  ++word_long;
   const uint8_t tone_code =
       (word_code & SHORT_ROOT_TONE_MASK) >> SHORT_ROOT_TONE_BEGIN;
   uint8_t tone_letter = FALSE;
-  tone_code_translation(tone_code, &tone_letter, text + 3);
-  uint8_t consonant_three_place = 3;
+  tone_code_translation(tone_code, &tone_letter, text + word_long);
   if (tone_letter == TRUE) {
-    consonant_three_place = 4;
+    ++word_long;
   }
   const uint8_t consonant_three_code =
       (word_code & SHORT_ROOT_CONSONANT_THREE_MASK) >>
       SHORT_ROOT_CONSONANT_THREE_BEGIN;
-  consonant_three_code_translation(consonant_three_code,
-                                   text + consonant_three_place);
+  consonant_three_code_translation(consonant_three_code, text + word_long);
+  ++word_long;
+  *text_long = word_long;
 }
 void long_root_code_translation(const uint16_t word_code, uint16_t *text_long,
                                 char *text) {
   assert(text_long != NULL);
   assert(text != NULL);
   // set first h
-  text[0] = 'h';
+  uint8_t word_long = 0;
   const uint8_t consonant_one_code =
       (word_code & LONG_ROOT_CONSONANT_ONE_MASK) >>
       LONG_ROOT_CONSONANT_ONE_BEGIN;
   uint8_t vocal = FALSE;
   consonant_one_code_translation(consonant_one_code, &vocal, text);
+  ++word_long;
   const uint8_t consonant_two_code =
       (word_code & LONG_ROOT_CONSONANT_TWO_MASK) >>
       LONG_ROOT_CONSONANT_TWO_BEGIN;
-  consonant_two_code_translation(consonant_two_code, vocal, text + 1);
+  consonant_two_code_translation(consonant_two_code, vocal, text + word_long);
+  ++word_long;
   printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
   const uint8_t vowel_code =
       (word_code & LONG_ROOT_VOWEL_MASK) >> LONG_ROOT_VOWEL_BEGIN;
-  vowel_code_translation(vowel_code, text + 2);
+  vowel_code_translation(vowel_code, text + word_long);
+  ++word_long;
   const uint8_t tone_code =
       (word_code & LONG_ROOT_TONE_MASK) >> LONG_ROOT_TONE_BEGIN;
   uint8_t tone_letter = FALSE;
-  tone_code_translation(tone_code, &tone_letter, text + 3);
-  uint8_t consonant_three_place = 3;
+  tone_code_translation(tone_code, &tone_letter, text + word_long);
   if (tone_letter == TRUE) {
-    consonant_three_place = 4;
+    ++word_long;
   }
   const uint8_t consonant_three_code =
       (word_code & LONG_ROOT_CONSONANT_THREE_MASK) >>
       LONG_ROOT_CONSONANT_THREE_BEGIN;
-  consonant_three_code_translation(consonant_three_code,
-                                   text + consonant_three_place);
+  consonant_three_code_translation(consonant_three_code, text + word_long);
+  ++word_long;
+  *text_long = word_long;
 }
 
 void word_code_translation(const uint16_t word_code, uint16_t *text_long,
                            char *text) {
   assert(text != NULL);
-  const uint16_t sort = word_code & CONSONANT_ONE_MASK;
-  switch (sort) {
-  // case short root
-  case SHORT_ROOT_DENOTE:
+  const uint16_t short_sort = word_code & SHORT_SORT_MASK;
+  const uint16_t long_sort = word_code & CONSONANT_ONE_MASK;
+  if (short_sort == SHORT_ROOT_DENOTE) {
     short_root_code_translation(word_code, text_long, text);
-    break;
-  // case long grammar
-  case LONG_GRAMMAR_DENOTE:
-    break;
-  // case short grammar
-  case SHORT_GRAMMAR_DENOTE:
-    break;
-  // case quote denote
-  case QUOTE_DENOTE:
-    break;
-  // default long root
-  default:
+  } else if (short_sort == LONG_GRAMMAR_DENOTE) {
+  } else if (long_sort == SHORT_GRAMMAR_DENOTE) {
+  } else if (long_sort == QUOTE_DENOTE) {
+  } else {
     long_root_code_translation(word_code, text_long, text);
-    break;
   }
 }
 
+void cardinal_translate(const v16us recipe, const uint64_t code_number,
+                        uint16_t *produce_text_long, char *produce_text,
+                        uint16_t *produce_filename_long, char *filename,
+                        uint16_t *file_sort) {
+  assert(produce_text != NULL);
+  assert(produce_text_long != NULL);
+  assert(filename != NULL);
+  assert(produce_filename_long != NULL);
+  assert(file_sort != NULL);
+  uint8_t phrase_place = 0;
+  uint8_t phrase_long = 0;
+  uint16_t indexFinger = 0;
+  uint16_t word_code = 0;
+  uint16_t filename_accumulation_long = 0;
+  const uint16_t maximum_filename_long = *produce_filename_long;
+  uint16_t filename_long = maximum_filename_long;
+  const char *recipe_text = "int main() {";
+  const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
+  memcpy(produce_text, recipe_text, recipe_text_magnitude);
+  *produce_text_long = recipe_text_magnitude;
+  phrase_situate(recipe, (uint16_t)(code_number >> 16), &phrase_place,
+                 &phrase_long);
+  // word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
+  // printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
+  // get phrase and translate to text
+  for (indexFinger = 0; indexFinger < (phrase_long - 1); ++indexFinger) {
+    word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
+    word_code_translation(word_code, &filename_long,
+                          filename + filename_accumulation_long);
+    filename_accumulation_long += filename_long;
+    filename_long = maximum_filename_long - filename_accumulation_long;
+  }
+  *produce_filename_long = filename_accumulation_long;
+  *file_sort = CARDINAL_WORD;
+}
+
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
-                           char *produce_text) {
+                           uint16_t *produce_text_long, char *text,
+                           uint16_t *filename_long, char *filename,
+                           uint16_t *file_sort) {
   assert(recipe_magnitude > 0);
   assert(recipe != NULL);
-  assert(produce_text != NULL);
+  assert(filename != NULL);
+  assert(text != NULL);
+  assert(filename_long != NULL);
+  assert(file_sort != NULL);
   v4us code_name = {0};
   derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
   uint64_t code_number = v4us_uint64_translation(code_name);
 
+  uint16_t word_code = 0;
   uint8_t phrase_place = 0;
   uint8_t phrase_long = 0;
-  uint16_t word_code = 0;
-  uint16_t text_long = 64;
-  char text[64] = {0};
+
   switch (code_number) {
   case 0x580100010000l:
     // probe topic
     // if cardinal  declare main
-    phrase_situate(*recipe, (uint16_t)(code_number >> 16), &phrase_place,
+    phrase_situate(*recipe, (uint16_t)(code_number >> 32), &phrase_place,
                    &phrase_long);
-    printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
-    // get phrase and translate to text
-    word_code = v16us_read(phrase_place, *recipe);
-    word_code_translation(word_code, &text_long, text);
+    word_code = v16us_read((uint8_t)(phrase_place), *recipe);
+    if (word_code == CARDINAL_WORD) {
+      cardinal_translate(*recipe, code_number, produce_text_long, text,
+                         filename_long, filename, file_sort);
+    }
     break;
   }
-  printf("text %s\n", text);
-  produce_text[0] = 'a';
+}
+
+void derive_filename(const uint16_t filename_long, const char *filename,
+                     const uint16_t file_sort, uint16_t *gross_filename_long,
+                     char *gross_filename) {
+  assert(gross_filename_long != NULL);
+  assert(gross_filename != NULL);
+  assert(*gross_filename_long > filename_long);
+  memcpy(gross_filename, filename, filename_long);
+  switch (file_sort) {
+  case CARDINAL_WORD:
+    memcpy(gross_filename + filename_long, ".c", 2);
+    break;
+  default:
+    break;
+  }
 }
