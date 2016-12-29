@@ -38,7 +38,9 @@ void text_file_addenda(const int text_long, const char *text,
   FILE *out = fopen(filename, "a");
   assert(out != NULL);
   int written_text_long = fprintf(out, "%s", text);
-  assert(written_text_long == text_long);
+   printf("text_long %X \n", text_long);
+   printf("written_text_long %X \n", written_text_long);
+  assert(written_text_long >= text_long);
   int result = fclose(out);
   assert(result == 0);
 }
@@ -85,20 +87,28 @@ int main(void) {
   uint64_t code_name = 0;
   code_name_derive((uint8_t)recipe_magnitude, recipe, &code_name);
   printf("code_name 64bit %016lX\n", code_name);
-  uint16_t produce_text_long = 256;
+  const uint16_t max_produce_text_long = 256;
+  uint16_t produce_text_long = max_produce_text_long;
   char produce_text[256] = "";
   uint16_t filename_long = 64;
   char filename[64] = "";
   uint16_t gross_filename_long = 64;
   char gross_filename[64] = "";
   uint16_t file_sort = 0;
+  uint16_t gross_text_long = 0;
   code_opencl_translate(recipe_magnitude, &(recipe[0]), &produce_text_long,
                         produce_text, &filename_long, filename, &file_sort);
-  derive_filename(filename_long, filename, file_sort, &gross_filename_long,
+  derive_filename(filename_long, filename, file_sort, &produce_text_long,
                   gross_filename);
-  text_file_addenda(produce_text_long, produce_text, gross_filename);
+  //text_file_addenda(produce_text_long, produce_text, gross_filename);
+  gross_text_long += produce_text_long;
+  produce_text_long = max_produce_text_long - gross_text_long;
   code_opencl_translate(recipe_magnitude, &(recipe[1]), &produce_text_long,
-                        produce_text, &filename_long, filename, &file_sort);
+                        produce_text + gross_text_long, &filename_long, filename, &file_sort);
+  gross_text_long += produce_text_long;
+  produce_text_long = max_produce_text_long - gross_text_long;
+  code_opencl_translate(recipe_magnitude, &(recipe[2]), &produce_text_long,
+                        produce_text + gross_text_long, &filename_long, filename, &file_sort);
   // get gross filename based on file sort and filename
 
   // create file if not existing
@@ -110,7 +120,7 @@ int main(void) {
 
   derive_filename(filename_long, filename, file_sort, &gross_filename_long,
                   gross_filename);
-  text_file_addenda(produce_text_long, produce_text, gross_filename);
+  text_file_addenda(gross_text_long, produce_text, gross_filename);
   return 0;
 }
 

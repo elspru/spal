@@ -941,7 +941,7 @@ extern inline void code_ACC_consonant_three(const uint8_t type,
 #define code_exit                                                              \
   *DAT_number = 0;                                                             \
   return;
-void code_ACC_word_DAT_number(const uint8_t ACC_GEN_magnitude, const char *word,
+void word_number_encode(const uint8_t ACC_GEN_magnitude, const char *word,
                               uint16_t *DAT_number) {
   /* Algorithm:
       TEL set ACC NUM zero DAT number DEO
@@ -1076,7 +1076,7 @@ void code_ACC_word_PL(const uint8_t ACC_GEN_magnitude,
       *DAT_GEN_remainder = (uint8_t)(ACC_GEN_magnitude - i);
       break;
     }
-    code_ACC_word_DAT_number(DAT_word_GEN_magnitude, DAT_word, &number);
+    word_number_encode(DAT_word_GEN_magnitude, DAT_word, &number);
     i = (uint8_t)(i + DAT_word_GEN_magnitude);
     DAT_code_independentClause[j] = number;
     DAT_word_GEN_magnitude = WORD_LONG;
@@ -1273,7 +1273,7 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
   derive_first_word(quote_class_magnitude, quote_class, &word_magnitude, word);
   assert(word_magnitude > 0 && "to derive type of quote");
   if (word_magnitude > 0)
-    code_ACC_word_DAT_number(word_magnitude, word, &quote_number);
+    word_number_encode(word_magnitude, word, &quote_number);
   else {
     *quote_word = 0;
     return;
@@ -1529,7 +1529,7 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
                         derived_word);
       if (derived_word_magnitude > 0) {
         number = 0;
-        code_ACC_word_DAT_number(derived_word_magnitude, derived_word, &number);
+        word_number_encode(derived_word_magnitude, derived_word, &number);
         // printf("n 0x%X \n", (uint) number);
         if (number != 0) {
           memset(word, 0, WORD_LONG);
@@ -2044,6 +2044,7 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
   uint8_t bit_indexFinger = 0;
   uint64_t random_seed = SEED_NUMBER;
   uint32_t c;
+  uint64_t hash_number = 0;
   int shift;
 
   /* cast s to unsigned const char * */
@@ -2056,9 +2057,10 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
     c = array[array_indexFinger];
     for (shift = 0; shift < BITS_PER_CHAR; ++shift, ++bit_indexFinger) {
       /* is low bit of c set? */
+      hash_number = splitMix64(&random_seed);
       if (c & 0x1) {
-        hash ^= splitMix64(&random_seed);
-        printf("hash %lX\n", hash);
+        hash ^= hash_number;
+        // printf("hash %lX\n", hash);
       }
 
       /* shift c to get new bit in lowest position */
@@ -2156,7 +2158,7 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
          sort_array[2]);
 
-  *code_name = djb2_hash(sort_array_indexFinger, sort_array);
+  *code_name = hash(sort_array_indexFinger, sort_array);
 }
 
 inline void play_independentClause(const uint8_t tablet_magnitude,
@@ -2509,10 +2511,9 @@ void word_code_translation(const uint16_t word_code, uint16_t *text_long,
   }
 }
 
-void cardinal_translate(const v16us recipe, 
-                        uint16_t *produce_text_long, char *produce_text,
-                        uint16_t *produce_filename_long, char *filename,
-                        uint16_t *file_sort) {
+void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
+                        char *produce_text, uint16_t *produce_filename_long,
+                        char *filename, uint16_t *file_sort) {
   assert(produce_text != NULL);
   assert(produce_text_long != NULL);
   assert(filename != NULL);
@@ -2529,8 +2530,7 @@ void cardinal_translate(const v16us recipe,
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   memcpy(produce_text, recipe_text, recipe_text_magnitude);
   *produce_text_long = recipe_text_magnitude;
-  phrase_situate(recipe, NOMINATIVE_CASE, &phrase_place,
-                 &phrase_long);
+  phrase_situate(recipe, NOMINATIVE_CASE, &phrase_place, &phrase_long);
   // word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
   // printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
   // get phrase and translate to text
@@ -2543,6 +2543,17 @@ void cardinal_translate(const v16us recipe,
   }
   *produce_filename_long = filename_accumulation_long;
   *file_sort = CARDINAL_WORD;
+}
+
+void return_translate(const v16us recipe, uint16_t *produce_text_long,
+                        char *produce_text) {
+      assert(produce_text != NULL);
+      assert(produce_text[0] == (char) 0); // must be clean
+      // get number quote from recipe
+      const uint8_t number_place = 3;
+      const int return_number = (int) v16us_read( number_place, recipe);
+      sprintf(produce_text, "return 0x%X;",return_number);
+      *produce_text_long = (uint16_t) strlen(produce_text);
 }
 
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
@@ -2563,17 +2574,24 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   uint8_t phrase_long = 0;
 
   switch (code_number) {
-  //case 0x580100010000l:
-  case 0xFF0B1DF:// name topic, name nominative, realis_mood
+  // case 0x580100010000l:
+  case 0xCE328737637E2034: // name topic, name nominative, realis_mood
     // probe topic
     // if cardinal  declare main
-    phrase_situate(*recipe, TOPIC_CASE, &phrase_place,
-                   &phrase_long);
+    phrase_situate(*recipe, TOPIC_CASE, &phrase_place, &phrase_long);
     word_code = v16us_read((uint8_t)(phrase_place), *recipe);
     if (word_code == CARDINAL_WORD) {
-      cardinal_translate(*recipe, produce_text_long, text,
-                         filename_long, filename, file_sort);
+      cardinal_translate(*recipe, produce_text_long, text, filename_long,
+                         filename, file_sort);
     }
+    break;
+  case 0x037AFB9DDE03DADB: // number return
+      printf("text %X ", (uint) text[0]);
+      return_translate(*recipe, produce_text_long, text);
+    break;
+  case 0xA4AC52AD14E8AD38: // finally close curly braces
+    *produce_text_long = 1;
+    text[0] = '}';
     break;
   }
 }
