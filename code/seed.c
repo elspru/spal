@@ -16,11 +16,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 contact: streondj at gmail dot com
 */
-#include "seed.h"
-#include "dictionary.h"
+
 #include <assert.h>
 #include <stdio.h>  // NOT opencl compatible
 #include <string.h> // NOT opencl compatible// uses memset and memcmp
+
+#include "dictionary.h"
+#include "lookup3.h"
+#include "seed.h"
 
 const char consonant_group[] = {'p', 't', 'k', 'f', 's', 'c', 'x', 'b',
                                 'd', 'g', 'v', 'z', 'j', 'n', 'm', 'q',
@@ -119,6 +122,399 @@ uint64_t v4us_uint64_translation(const v4us vector) {
       ((uint64_t)vector.s0 << (16 * 0)) + ((uint64_t)vector.s1 << (16 * 1)) +
       ((uint64_t)vector.s2 << (16 * 2)) + ((uint64_t)vector.s3 << (16 * 3)));
 }
+
+#define HASH_LITTLE_ENDIAN 1
+
+#define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
+/*
+-------------------------------------------------------------------------------
+final -- final mixing of 3 32-bit values (a,b,c) into c
+
+Pairs of (a,b,c) values differing in only a few bits will usually
+produce values of c that look totally different.  This was tested for
+* pairs that differed by one bit, by two bits, in any combination
+  of top bits of (a,b,c), or in any combination of bottom bits of
+  (a,b,c).
+* "differ" is defined as +, -, ^, or ~^.  For + and -, I transformed
+  the output delta to a Gray code (a^(a>>1)) so a string of 1's (as
+  is commonly produced by subtraction) look like a single 1-bit
+  difference.
+* the base values were pseudorandom, all zero but one bit set, or
+  all zero plus a counter that starts at zero.
+
+These constants passed:
+ 14 11 25 16 4 14 24
+ 12 14 25 16 4 14 24
+and these came close:
+  4  8 15 26 3 22 24
+ 10  8 15 26 3 22 24
+ 11  8 15 26 3 22 24
+-------------------------------------------------------------------------------
+*/
+#define final(a, b, c)                                                         \
+  {                                                                            \
+    c ^= b;                                                                    \
+    c -= rot(b, 14);                                                           \
+    a ^= c;                                                                    \
+    a -= rot(c, 11);                                                           \
+    b ^= a;                                                                    \
+    b -= rot(a, 25);                                                           \
+    c ^= b;                                                                    \
+    c -= rot(b, 16);                                                           \
+    a ^= c;                                                                    \
+    a -= rot(c, 4);                                                            \
+    b ^= a;                                                                    \
+    b -= rot(a, 14);                                                           \
+    c ^= b;                                                                    \
+    c -= rot(b, 24);                                                           \
+  }
+
+/*
+-------------------------------------------------------------------------------
+mix -- mix 3 32-bit values reversibly.
+
+This is reversible, so any information in (a,b,c) before mix() is
+still in (a,b,c) after mix().
+
+If four pairs of (a,b,c) inputs are run through mix(), or through
+mix() in reverse, there are at least 32 bits of the output that
+are sometimes the same for one pair and different for another pair.
+This was tested for:
+* pairs that differed by one bit, by two bits, in any combination
+  of top bits of (a,b,c), or in any combination of bottom bits of
+  (a,b,c).
+* "differ" is defined as +, -, ^, or ~^.  For + and -, I transformed
+  the output delta to a Gray code (a^(a>>1)) so a string of 1's (as
+  is commonly produced by subtraction) look like a single 1-bit
+  difference.
+* the base values were pseudorandom, all zero but one bit set, or
+  all zero plus a counter that starts at zero.
+
+Some k values for my "a-=c; a^=rot(c,k); c+=b;" arrangement that
+satisfy this are
+    4  6  8 16 19  4
+    9 15  3 18 27 15
+   14  9  3  7 17  3
+Well, "9 15 3 18 27 15" didn't quite get 32 bits diffing
+for "differ" defined as + with a one-bit base and a two-bit delta.  I
+used http://burtleburtle.net/bob/hash/avalanche.html to choose
+the operations, constants, and arrangements of the variables.
+
+This does not achieve avalanche.  There are input bits of (a,b,c)
+that fail to affect some output bits of (a,b,c), especially of a.  The
+most thoroughly mixed value is c, but it doesn't really even achieve
+avalanche in c.
+
+This allows some parallelism.  Read-after-writes are good at doubling
+the number of bits affected, so the goal of mixing pulls in the opposite
+direction as the goal of parallelism.  I did what I could.  Rotates
+seem to cost as much as shifts on every machine I could lay my hands
+on, and rotates are much kinder to the top and bottom bits, so I used
+rotates.
+-------------------------------------------------------------------------------
+*/
+#define mix(a, b, c)                                                           \
+  {                                                                            \
+    a -= c;                                                                    \
+    a ^= rot(c, 4);                                                            \
+    c += b;                                                                    \
+    b -= a;                                                                    \
+    b ^= rot(a, 6);                                                            \
+    a += c;                                                                    \
+    c -= b;                                                                    \
+    c ^= rot(b, 8);                                                            \
+    b += a;                                                                    \
+    a -= c;                                                                    \
+    a ^= rot(c, 16);                                                           \
+    c += b;                                                                    \
+    b -= a;                                                                    \
+    b ^= rot(a, 19);                                                           \
+    a += c;                                                                    \
+    c -= b;                                                                    \
+    c ^= rot(b, 4);                                                            \
+    b += a;                                                                    \
+  }
+/*
+ * hashlittle2: return 2 32-bit hash values
+ *
+ * This is identical to hashlittle(), except it returns two 32-bit hash
+ * values instead of just one.  This is good enough for hash table
+ * lookup with 2^^64 buckets, or if you want a second hash if you're not
+ * happy with the first, or if you want a probably-unique 64-bit ID for
+ * the key.  *pc is better mixed than *pb, so use *pc first.  If you want
+ * a 64-bit value do something like "*pc + (((uint64_t)*pb)<<32)".
+ */
+void hashlittle2(const void *key, /* the key to hash */
+                 size_t length,   /* length of the key */
+                 uint32_t *pc,    /* IN: primary initval, OUT: primary hash */
+                 uint32_t *pb) /* IN: secondary initval, OUT: secondary hash */
+{
+  uint32_t a, b, c; /* internal state */
+  union {
+    const void *ptr;
+    size_t i;
+  } u; /* needed for Mac Powerbook G4 */
+
+  /* Set up the internal state */
+  a = b = c = 0xdeadbeef + ((uint32_t)length) + *pc;
+  c += *pb;
+
+  u.ptr = key;
+  if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
+    const uint32_t *k = (const uint32_t *)key; /* read 32-bit chunks */
+    // const uint8_t  *k8;
+
+    /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
+    while (length > 12) {
+      a += k[0];
+      b += k[1];
+      c += k[2];
+      mix(a, b, c);
+      length -= 12;
+      k += 3;
+    }
+
+/*----------------------------- handle the last (probably partial) block */
+/*
+ * "k[2]&0xffffff" actually reads beyond the end of the string, but
+ * then masks off the part it's not allowed to read.  Because the
+ * string is aligned, the masked-off tail is in the same word as the
+ * rest of the string.  Every machine with memory protection I've seen
+ * does it on word boundaries, so is OK with this.  But VALGRIND will
+ * still catch it and complain.  The masking trick does make the hash
+ * noticably faster for short strings (like English words).
+ */
+#ifndef VALGRIND
+
+    switch (length) {
+    case 12:
+      c += k[2];
+      b += k[1];
+      a += k[0];
+      break;
+    case 11:
+      c += k[2] & 0xffffff;
+      b += k[1];
+      a += k[0];
+      break;
+    case 10:
+      c += k[2] & 0xffff;
+      b += k[1];
+      a += k[0];
+      break;
+    case 9:
+      c += k[2] & 0xff;
+      b += k[1];
+      a += k[0];
+      break;
+    case 8:
+      b += k[1];
+      a += k[0];
+      break;
+    case 7:
+      b += k[1] & 0xffffff;
+      a += k[0];
+      break;
+    case 6:
+      b += k[1] & 0xffff;
+      a += k[0];
+      break;
+    case 5:
+      b += k[1] & 0xff;
+      a += k[0];
+      break;
+    case 4:
+      a += k[0];
+      break;
+    case 3:
+      a += k[0] & 0xffffff;
+      break;
+    case 2:
+      a += k[0] & 0xffff;
+      break;
+    case 1:
+      a += k[0] & 0xff;
+      break;
+    case 0:
+      *pc = c;
+      *pb = b;
+      return; /* zero length strings require no mixing */
+    }
+
+#else /* make valgrind happy */
+
+    k8 = (const uint8_t *)k;
+    switch (length) {
+    case 12:
+      c += k[2];
+      b += k[1];
+      a += k[0];
+      break;
+    case 11:
+      c += ((uint32_t)k8[10]) << 16; /* fall through */
+    case 10:
+      c += ((uint32_t)k8[9]) << 8; /* fall through */
+    case 9:
+      c += k8[8]; /* fall through */
+    case 8:
+      b += k[1];
+      a += k[0];
+      break;
+    case 7:
+      b += ((uint32_t)k8[6]) << 16; /* fall through */
+    case 6:
+      b += ((uint32_t)k8[5]) << 8; /* fall through */
+    case 5:
+      b += k8[4]; /* fall through */
+    case 4:
+      a += k[0];
+      break;
+    case 3:
+      a += ((uint32_t)k8[2]) << 16; /* fall through */
+    case 2:
+      a += ((uint32_t)k8[1]) << 8; /* fall through */
+    case 1:
+      a += k8[0];
+      break;
+    case 0:
+      *pc = c;
+      *pb = b;
+      return; /* zero length strings require no mixing */
+    }
+
+#endif /* !valgrind */
+
+  } else if (HASH_LITTLE_ENDIAN && ((u.i & 0x1) == 0)) {
+    const uint16_t *k = (const uint16_t *)key; /* read 16-bit chunks */
+    const uint8_t *k8;
+
+    /*--------------- all but last block: aligned reads and different mixing */
+    while (length > 12) {
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      b += k[2] + (((uint32_t)k[3]) << 16);
+      c += k[4] + (((uint32_t)k[5]) << 16);
+      mix(a, b, c);
+      length -= 12;
+      k += 6;
+    }
+
+    /*----------------------------- handle the last (probably partial) block */
+    k8 = (const uint8_t *)k;
+    switch (length) {
+    case 12:
+      c += k[4] + (((uint32_t)k[5]) << 16);
+      b += k[2] + (((uint32_t)k[3]) << 16);
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      break;
+    case 11:
+      c += ((uint32_t)k8[10]) << 16; /* fall through */
+    case 10:
+      c += k[4];
+      b += k[2] + (((uint32_t)k[3]) << 16);
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      break;
+    case 9:
+      c += k8[8]; /* fall through */
+    case 8:
+      b += k[2] + (((uint32_t)k[3]) << 16);
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      break;
+    case 7:
+      b += ((uint32_t)k8[6]) << 16; /* fall through */
+    case 6:
+      b += k[2];
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      break;
+    case 5:
+      b += k8[4]; /* fall through */
+    case 4:
+      a += k[0] + (((uint32_t)k[1]) << 16);
+      break;
+    case 3:
+      a += ((uint32_t)k8[2]) << 16; /* fall through */
+    case 2:
+      a += k[0];
+      break;
+    case 1:
+      a += k8[0];
+      break;
+    case 0:
+      *pc = c;
+      *pb = b;
+      return; /* zero length strings require no mixing */
+    }
+
+  } else { /* need to read the key one byte at a time */
+    const uint8_t *k = (const uint8_t *)key;
+
+    /*--------------- all but the last block: affect some 32 bits of (a,b,c) */
+    while (length > 12) {
+      a += k[0];
+      a += ((uint32_t)k[1]) << 8;
+      a += ((uint32_t)k[2]) << 16;
+      a += ((uint32_t)k[3]) << 24;
+      b += k[4];
+      b += ((uint32_t)k[5]) << 8;
+      b += ((uint32_t)k[6]) << 16;
+      b += ((uint32_t)k[7]) << 24;
+      c += k[8];
+      c += ((uint32_t)k[9]) << 8;
+      c += ((uint32_t)k[10]) << 16;
+      c += ((uint32_t)k[11]) << 24;
+      mix(a, b, c);
+      length -= 12;
+      k += 12;
+    }
+
+    /*-------------------------------- last block: affect all 32 bits of (c) */
+    switch (length) /* all the case statements fall through */
+    {
+    case 12:
+      c += ((uint32_t)k[11]) << 24;
+    case 11:
+      c += ((uint32_t)k[10]) << 16;
+    case 10:
+      c += ((uint32_t)k[9]) << 8;
+    case 9:
+      c += k[8];
+    case 8:
+      b += ((uint32_t)k[7]) << 24;
+    case 7:
+      b += ((uint32_t)k[6]) << 16;
+    case 6:
+      b += ((uint32_t)k[5]) << 8;
+    case 5:
+      b += k[4];
+    case 4:
+      a += ((uint32_t)k[3]) << 24;
+    case 3:
+      a += ((uint32_t)k[2]) << 16;
+    case 2:
+      a += ((uint32_t)k[1]) << 8;
+    case 1:
+      a += k[0];
+      break;
+    case 0:
+      *pc = c;
+      *pb = b;
+      return; /* zero length strings require no mixing */
+    }
+  }
+
+  final(a, b, c);
+  *pc = c;
+  *pb = b;
+}
+void hashlittle64(size_t length,   /* length of the key */
+                  const void *key, /* the key to hash */
+                  uint64_t *pc)    /* IN: primary initval, OUT: primary hash */
+
+{
+  uint32_t pc1, pc2 = 0;
+  hashlittle2(key, length, &pc1, &pc2);
+  *pc = (uint64_t)(pc1 + (((uint64_t)pc2) << 0x20));
+}
+
 void v16us_write(const uint8_t indexFinger, const uint16_t number,
                  v16us *vector) {
   assert(indexFinger < 16);
@@ -1604,6 +2000,165 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
   }
   sort_code_name(code_name);
 }
+
+int compare(const void *a, const void *b) {
+  return (int)(*(uint32_t *)a - *(uint32_t *)b);
+}
+
+void sort_array_sort(const uint8_t array_long, uint32_t *sort_array) {
+  assert(sort_array != NULL);
+  qsort(sort_array, array_long, sizeof(uint32_t), compare);
+}
+
+/* implements universal hashing using random bit-vectors in x */
+/* assumes number of elements in x is at least BITS_PER_CHAR * MAX_STRING_SIZE
+ */
+
+#define BITS_PER_CHAR (32)    /* not true on all machines! */
+#define MAX_STRING_SIZE (128) /* we'll stop hashing after this many */
+#define MAX_BITS (BITS_PER_CHAR * MAX_STRING_SIZE)
+#define SEED_NUMBER UINT64_C(0x123456789ABCDEF)
+
+uint64_t splitMix64(uint64_t *seed) {
+  uint64_t z = (*seed += UINT64_C(0x9E3779B97F4A7C15));
+  z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
+  z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
+  return z ^ (z >> 31);
+}
+
+uint64_t djb2_hash(uint8_t array_length, uint32_t *array) {
+  uint64_t hash = 5381;
+  uint32_t word;
+  uint8_t indexFinger;
+
+  for (indexFinger = 0; indexFinger < array_length; ++indexFinger) {
+    word = array[indexFinger];
+    hash = ((hash << 5) + hash) + word; /* hash * 33 + c */
+  }
+  return hash;
+}
+
+uint64_t hash(const uint8_t array_length, const uint32_t *array) {
+  uint64_t hash;
+  uint8_t array_indexFinger = 0;
+  uint8_t bit_indexFinger = 0;
+  uint64_t random_seed = SEED_NUMBER;
+  uint32_t c;
+  int shift;
+
+  /* cast s to unsigned const char * */
+  /* this ensures that elements of s will be treated as having values >= 0 */
+
+  printf("array_indexFinger %X\n", array_indexFinger);
+  hash = 0;
+  for (array_indexFinger = 0; array_indexFinger < array_length;
+       ++array_indexFinger) {
+    c = array[array_indexFinger];
+    for (shift = 0; shift < BITS_PER_CHAR; ++shift, ++bit_indexFinger) {
+      /* is low bit of c set? */
+      if (c & 0x1) {
+        hash ^= splitMix64(&random_seed);
+        printf("hash %lX\n", hash);
+      }
+
+      /* shift c to get new bit in lowest position */
+      c >>= 1;
+    }
+  }
+
+  return hash;
+}
+
+void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
+                      uint64_t *code_name) {
+  // new derive_code_name function
+  // get cases and quotes
+  // get topic name along with topic
+  // put each into a 32bit number
+  // then sort the array of 32bit numbers with qsort
+  // then get a 64bit hash of the array from hashlittle64 and return it
+  assert(tablet_magnitude != 0);
+  assert(tablet != NULL);
+  assert(code_name != NULL);
+  uint8_t tablet_indexFinger = 1;
+  uint16_t indicator_list = 0;
+  uint8_t indicator = 0;
+  uint8_t tablet_number = 0;
+  uint8_t exit = FALSE;
+  // uint8_t maximum_code_indexFinger = 3;
+  uint32_t word = 0;
+  uint32_t sort_array[0x10] = {0};
+  uint8_t sort_array_indexFinger = 0;
+  uint16_t quote_sort = 0;
+  // uint8_t code_indexFinger = 0;
+  // v8us quote_fill = {{0}};
+  indicator_list = v16us_read(0, *tablet);
+  indicator = (uint8_t)1 & indicator_list;
+  // printf("indicator %X\n", (uint) indicator);
+  // printf("indicator_list %X\n", (uint)indicator_list);
+  //
+  //
+  for (tablet_number = 0; tablet_number < tablet_magnitude; ++tablet_number) {
+    for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
+      // if previous is indicated then quiz if is quote
+      quote_sort = 1;
+      if (((indicator_list & (1 << (tablet_indexFinger - 1))) >>
+           (tablet_indexFinger - 1)) == indicator &&
+          (v16us_read(tablet_indexFinger, tablet[0]) &
+           (uint16_t)CONSONANT_ONE_MASK) == (uint16_t)QUOTED_DENOTE) {
+        // check if is quote, if yes then copy it over to coded name
+        quote_sort = (uint16_t)(v16us_read(tablet_indexFinger, tablet[0]) >>
+                                CONSONANT_ONE_THICK);
+        // word = (uint32_t)quote_sort << 0x10;
+      }
+      // check word before the grammatical-case, see if it is a name type.
+      // if it is, then copy it over to coded name.
+      // if current is indicated then quiz if is case or
+      // verb
+      // uint16_t code_number;
+      // printf("tablet_indexFinger %X", tablet_indexFinger);
+      // printf("testing %X ",
+      //      ((indicator_list >> tablet_indexFinger) & 1));
+      if (((indicator_list >> tablet_indexFinger) & 1) == indicator) {
+        // printf("tablet_indexFinger2 %X\n", tablet_indexFinger);
+        word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
+        // printf("word %X", word);
+        sort_array[sort_array_indexFinger] =
+            word | ((uint32_t)quote_sort << 0x10);
+        ++sort_array_indexFinger;
+        switch (word) {
+        case RETURN:
+          exit = TRUE;
+          break;
+        case CONDITIONAL_MOOD:
+          exit = TRUE;
+          break;
+        case DEONTIC_MOOD:
+          exit = TRUE;
+          break;
+        case REALIS_MOOD:
+          exit = TRUE;
+          break;
+        }
+      }
+      // printf("exit %X\n", exit);
+      if (exit == TRUE) {
+        break;
+      }
+    }
+    if (exit == TRUE)
+      break;
+  }
+  printf("sort_array_indexFinger %X\n", (uint32_t)sort_array_indexFinger);
+  printf("unsorted array %X %X %X\n", sort_array[0], sort_array[1],
+         sort_array[2]);
+  sort_array_sort(sort_array_indexFinger, sort_array);
+  printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
+         sort_array[2]);
+
+  *code_name = djb2_hash(sort_array_indexFinger, sort_array);
+}
+
 inline void play_independentClause(const uint8_t tablet_magnitude,
                                    const v16us *tablet, v4us *coded_name,
                                    v8us *hook_list) {
@@ -1796,10 +2351,7 @@ void phrase_situate(const v16us tablet, const uint16_t phrase_code,
   assert(tablet.s0 != 0);
   assert(phrase_place != NULL);
   assert(phrase_long != NULL);
-  const uint16_t grammaticalCase_code = phrase_code >> SCENE_TIDBIT;
-  printf("grammaticalCase_code %04X \n", grammaticalCase_code);
-  const uint16_t grammaticalCase_word =
-      grammaticalCase_code_word_translate(grammaticalCase_code);
+  const uint16_t grammaticalCase_word = phrase_code;
   printf("grammaticalCase_word %04X \n", grammaticalCase_word);
   const uint16_t binary_phrase_list = (uint16_t)tablet.s0;
   const uint16_t referential = (uint8_t)binary_phrase_list & 1;
@@ -1957,7 +2509,7 @@ void word_code_translation(const uint16_t word_code, uint16_t *text_long,
   }
 }
 
-void cardinal_translate(const v16us recipe, const uint64_t code_number,
+void cardinal_translate(const v16us recipe, 
                         uint16_t *produce_text_long, char *produce_text,
                         uint16_t *produce_filename_long, char *filename,
                         uint16_t *file_sort) {
@@ -1977,7 +2529,7 @@ void cardinal_translate(const v16us recipe, const uint64_t code_number,
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   memcpy(produce_text, recipe_text, recipe_text_magnitude);
   *produce_text_long = recipe_text_magnitude;
-  phrase_situate(recipe, (uint16_t)(code_number >> 16), &phrase_place,
+  phrase_situate(recipe, NOMINATIVE_CASE, &phrase_place,
                  &phrase_long);
   // word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
   // printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
@@ -2003,23 +2555,23 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   assert(text != NULL);
   assert(filename_long != NULL);
   assert(file_sort != NULL);
-  v4us code_name = {0};
-  derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
-  uint64_t code_number = v4us_uint64_translation(code_name);
-
+  uint64_t code_number = 0;
+  code_name_derive((uint8_t)recipe_magnitude, recipe, &code_number);
+  printf("code_number %016lX \n ", (uint64_t)code_number);
   uint16_t word_code = 0;
   uint8_t phrase_place = 0;
   uint8_t phrase_long = 0;
 
   switch (code_number) {
-  case 0x580100010000l:
+  //case 0x580100010000l:
+  case 0xFF0B1DF:// name topic, name nominative, realis_mood
     // probe topic
     // if cardinal  declare main
-    phrase_situate(*recipe, (uint16_t)(code_number >> 32), &phrase_place,
+    phrase_situate(*recipe, TOPIC_CASE, &phrase_place,
                    &phrase_long);
     word_code = v16us_read((uint8_t)(phrase_place), *recipe);
     if (word_code == CARDINAL_WORD) {
-      cardinal_translate(*recipe, code_number, produce_text_long, text,
+      cardinal_translate(*recipe, produce_text_long, text,
                          filename_long, filename, file_sort);
     }
     break;

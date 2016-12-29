@@ -259,6 +259,8 @@ typedef cl_ushort8 v8us;
 typedef cl_ushort4 v4us;
 #endif
 
+//#include "lookup3.h"
+
 #define V8US_LONG 16
 /*#define NULL 0*/
 
@@ -294,6 +296,8 @@ void play_text(const uint16_t tablet_size, const v16us *tablet,
                v4us *coded_name, v8us *hook_list);
 void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
                       v4us *code_name);
+void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
+                      uint64_t *code_name);
 
 uint16_t v16us_read(const uint8_t indexFinger, const v16us vector);
 uint64_t v4us_uint64_translation(const v4us vector);

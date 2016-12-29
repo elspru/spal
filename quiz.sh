@@ -1,5 +1,8 @@
 #!/bin/bash
+rm ./*.c
+rm ./*.h
+rm ./*.cl
 make clean
 ./configure
 make
-binary/spal
+valgrind -q binary/spal

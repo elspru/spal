@@ -25,11 +25,23 @@ contact: streondj at gmail dot com
 #include <string.h>
 
 #include "genericOpenCL.h"
+#include "lookup3.h"
 #include "seed.h"
+#define VALGRIND
 #define NEWSPAPER_LONG 0x10
 uint8_t newspaper_indexFinger = 0;
 const uint16_t newspaper_byte_magnitude = NEWSPAPER_LONG * TABLET_BYTE_LONG;
 // v16us newspaper[NEWSPAPER_LONG] = {0};
+
+void text_file_addenda(const int text_long, const char *text,
+                       const char *filename) {
+  FILE *out = fopen(filename, "a");
+  assert(out != NULL);
+  int written_text_long = fprintf(out, "%s", text);
+  assert(written_text_long == text_long);
+  int result = fclose(out);
+  assert(result == 0);
+}
 
 int main(void) {
   // Generic Algorithm:
@@ -41,7 +53,7 @@ int main(void) {
   const char *recipe_text = "kratta krathnimna li zrundofi fe";
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 4;
-  v16us recipe[8];
+  v16us recipe[8] = {0};
   uint16_t text_remainder = 0;
   uint8_t tablet_indexFinger = 0;
   uint16_t recipe_byte_magnitude =
@@ -59,6 +71,7 @@ int main(void) {
   uint8_t recipe_indexFinger = 0;
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
+    printf("\nrecipe[%X]", recipe_indexFinger);
     for (tablet_indexFinger = 0; tablet_indexFinger < (TABLET_LONG);
          ++tablet_indexFinger) {
       if (tablet_indexFinger % 0x10 == 0)
@@ -69,11 +82,9 @@ int main(void) {
   }
   printf("\n");
 
-  v4us code_name = {0};
-  derive_code_name((uint8_t)recipe_magnitude, recipe, &code_name);
-  printf("code_name %04X %04X %04X %04X\n", (cl_ushort)code_name.s0,
-         code_name.s1, code_name.s2, code_name.s3);
-  printf("code_name 64bit %016lX\n", v4us_uint64_translation(code_name));
+  uint64_t code_name = 0;
+  code_name_derive((uint8_t)recipe_magnitude, recipe, &code_name);
+  printf("code_name 64bit %016lX\n", code_name);
   uint16_t produce_text_long = 256;
   char produce_text[256] = "";
   uint16_t filename_long = 64;
@@ -81,18 +92,25 @@ int main(void) {
   uint16_t gross_filename_long = 64;
   char gross_filename[64] = "";
   uint16_t file_sort = 0;
-  code_opencl_translate(recipe_magnitude, recipe, &produce_text_long,
+  code_opencl_translate(recipe_magnitude, &(recipe[0]), &produce_text_long,
+                        produce_text, &filename_long, filename, &file_sort);
+  derive_filename(filename_long, filename, file_sort, &gross_filename_long,
+                  gross_filename);
+  text_file_addenda(produce_text_long, produce_text, gross_filename);
+  code_opencl_translate(recipe_magnitude, &(recipe[1]), &produce_text_long,
                         produce_text, &filename_long, filename, &file_sort);
   // get gross filename based on file sort and filename
 
-  derive_filename(filename_long, filename, file_sort, &gross_filename_long,
-                  gross_filename);
   // create file if not existing
   // append to file buffer
   printf("text_long %X text '%s' filename_long %X filename '%s' file_sort %X "
          "gross_filename %s\n",
          produce_text_long, produce_text, filename_long, filename, file_sort,
          gross_filename);
+
+  derive_filename(filename_long, filename, file_sort, &gross_filename_long,
+                  gross_filename);
+  text_file_addenda(produce_text_long, produce_text, gross_filename);
   return 0;
 }
 
