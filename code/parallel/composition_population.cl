@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 contact: streondj at gmail dot com
 */
-#define NEWSPAPER_LONG 0x10
 
 #define REALIS_MOOD 0x017E                     // li
 #define DEONTIC_MOOD 0x095E                    // tu

@@ -21,17 +21,13 @@ SUBDIRS = .
 noinst_LIBRARIES =  library/library_seed.a \
                     library/library_genericOpenCL.a \
                     library/library_dictionary.a \
-                    library/library_lookup3.a
                     # library/library_simpleCL.a \
                     # library/library_programmer.a  \
                     # library/library_random.a 
 
-library_library_lookup3_a_SOURCES = code/lookup3.c code/lookup3.h
-library_library_lookup3_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
 
 library_library_seed_a_SOURCES = code/seed.c code/seed.h
 library_library_seed_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)#\
-library_library_seed_a_LDADD = library/library_lookup3.a \
  #        -Wstack-usage=256 # data bytes per warp
 
 library_library_genericOpenCL_a_SOURCES = code/genericOpenCL.c code/genericOpenCL.h
@@ -60,7 +56,7 @@ bin_PROGRAMS = binary/encoding binary/clprobe binary/spal
 binary_spal_SOURCES = code/spal_compile.c 
 binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
      #    -Wstack-usage=32768  #L1 Cache
-binary_spal_LDADD = library/library_lookup3.a  library/library_seed.a \
+binary_spal_LDADD =  library/library_seed.a \
           library/library_genericOpenCL.a library/library_dictionary.a 
 #          library/library_simpleCL.a
 

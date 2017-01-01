@@ -63,4 +63,51 @@ In theory can use any language for implementation.
 Though ideally would be a version of C which is similar to the above, 
 so it could then be recoded in SPAL.\@
 
+\section{answer verification}
 
+The agree debug library is OpenCL and holy ceremeny (pure function) compatible. 
+
+Ideally would have a way of listing many inputs and their corresponding outputs. 
+If this could be fed to an OpenCL kernel that would be delicious. 
+
+The agree debug library can be the ``testing framework'' for SPAL programs. 
+So each agree statement adds a line to the newspaper,
+after the program is complete it can list the statements in the newspaper,
+saying those are the tests that failed. 
+Additionally could have a list of the number that have passed.
+
+I'm thinking can save both the line number, and the amount that have passed in
+the first line of the newspaper. It can be an actual sentence, with two 16bit
+spaces for the values.\ 
+
+gzat na hnuc do lweh hnuc do mwah slak fa li
+
+A newspaper until number with number succeeded.
+
+A newspaper should be at least 16 sentences long, which is one page or 512
+bytes, and less than or equal to 512 sentences, (32 pages), since that is the
+most that could  fit in L1 memory with other processes. 
+
+\section{translate all independentClauses to C}
+
+Any independent-clause can be turned into C.
+
+can be of the form:
+\begin{lstlisting}
+case1_case2_verb_mood (sort1 name, sort2 name); 
+\end{lstlisting}
+
+\section{Memory}
+
+There is no dynamic allocation of memory, only static, until further notice.
+
+This is because historically dynamic allocation of memory has led to many memory
+leaks and other problems. 
+
+\section{Control Flow}
+Instead of the traditional for loop that relies on variables defined outside
+it's bounds, the for loops in SPAL only contain a function, and a listener to
+see if it should break early. 
+
+That way based on the size of the for loop, the compiler can assign it to run on
+single thread, multi thread CPU, or GPU.\@ 

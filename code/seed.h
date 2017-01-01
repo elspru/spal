@@ -45,8 +45,6 @@ contact: streondj at gmail dot com
 #define SHORT_SORT_MASK 0x7
 #define SHORT_ROOT_CONSONANT_ONE_MASK 0xF8
 #define SHORT_ROOT_CONSONANT_ONE_BEGIN 0x3
-#define LONG_GRAMMAR_CONSONANT_TWO_MASK 0x700
-#define LONG_GRAMMAR_CONSONANT_TWO_BEGIN 0x8
 #define SHORT_ROOT_VOWEL_BEGIN 0x8
 #define SHORT_ROOT_VOWEL_MASK 0x700
 #define SHORT_ROOT_TONE_BEGIN 11
@@ -54,8 +52,19 @@ contact: streondj at gmail dot com
 #define SHORT_ROOT_CONSONANT_THREE_BEGIN 13
 #define SHORT_ROOT_CONSONANT_THREE_MASK 0xE000
 #define LONG_GRAMMAR_CONSONANT_ONE_MASK 0xF8
+#define LONG_GRAMMAR_CONSONANT_ONE_BEGIN 0x3
 #define LONG_GRAMMAR_CONSONANT_TWO_MASK 0x700
 #define LONG_GRAMMAR_CONSONANT_TWO_BEGIN 0x8
+#define LONG_GRAMMAR_VOWEL_BEGIN 0xB
+#define LONG_GRAMMAR_VOWEL_MASK 0x3800
+#define LONG_GRAMMAR_TONE_BEGIN 0xE
+#define LONG_GRAMMAR_TONE_MASK 0xC000
+#define SHORT_GRAMMAR_CONSONANT_ONE_BEGIN 0x5
+#define SHORT_GRAMMAR_CONSONANT_ONE_MASK 0x3E0
+#define SHORT_GRAMMAR_VOWEL_BEGIN 0xA
+#define SHORT_GRAMMAR_VOWEL_MASK 0x1C00
+#define SHORT_GRAMMAR_TONE_BEGIN 0xD
+#define SHORT_GRAMMAR_TONE_MASK 0x6000
 #define LONG_ROOT_CONSONANT_ONE_BEGIN 0x0
 #define LONG_ROOT_CONSONANT_ONE_MASK 0x1F
 #define LONG_ROOT_CONSONANT_TWO_BEGIN 0x5
@@ -175,11 +184,11 @@ contact: streondj at gmail dot com
 #define SIGNED_CHAR_QUOTED 0x029D
 #define SHORT_NUMBER_QUOTED 0x143D
 // numbers
-#define ZERO_WORD 0x62D4  // zrun
-#define ONE_WORD 0x6028   // hwin
+#define ZERO_WORD 0x64D4  // zron
+#define ONE_WORD 0x2018   // hyik
 #define TWO_WORD 0xA20A   // tyut
 #define THREE_WORD 0x600A // tyin
-#define FOUR_WORD 0xA260  // hfut
+#define FOUR_WORD 0x8142  // ksas
 #define FIVE_WORD 0x612C  // fwan
 #define SIX_WORD 0x80A2
 #define SEVEN_WORD 0xE009
@@ -259,7 +268,6 @@ typedef cl_ushort8 v8us;
 typedef cl_ushort4 v4us;
 #endif
 
-//#include "lookup3.h"
 
 #define V8US_LONG 16
 /*#define NULL 0*/
@@ -272,7 +280,7 @@ void code_ACC_word_PL(const uint8_t ACC_GEN_size,
                       const char *ACC_independentClause, uint8_t *DAT_GEN_size,
                       uint16_t *DAT_code_independentClause,
                       uint8_t *DAT_GEN_remainder);
-void code_ACC_word_DAT_number(const uint8_t word_size, const char *word,
+void word_number_encode(const uint8_t word_size, const char *word,
                               uint16_t *number);
 
 void text_copy(const uint8_t size, const char *ACC_text, char *DAT_text);
@@ -309,4 +317,6 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
 void derive_filename(const uint16_t filename_long, const char *filename,
                      const uint16_t file_sort, uint16_t *gross_filename_long,
                      char *gross_filename);
+
+void tablet_translate(const v16us tablet, uint16_t *text_long, char *text);
 #endif

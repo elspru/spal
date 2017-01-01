@@ -25,8 +25,8 @@ contact: streondj at gmail dot com
 #include <string.h>
 
 #include "genericOpenCL.h"
-#include "lookup3.h"
 #include "seed.h"
+#include "agree.h"
 #define VALGRIND
 #define NEWSPAPER_LONG 0x10
 uint8_t newspaper_indexFinger = 0;
@@ -45,6 +45,46 @@ void text_file_addenda(const int text_long, const char *text,
   assert(result == 0);
 }
 
+void newspaper_print(const uint16_t newspaper_indexFinger, const v16us * newspaper) {
+  uint16_t indexFinger = 0;
+  char text[TABLET_LONG*WORD_LONG] = "";
+  uint16_t text_long = TABLET_LONG*WORD_LONG;
+  printf("newspaper %X\n", newspaper_indexFinger );
+  for (;indexFinger < newspaper_indexFinger; ++indexFinger) {
+      printf("%X %X %X %X  %X %X %X %X  %X %X %X %X  %X %X %X %X\n",
+        newspaper[indexFinger].s0,
+        newspaper[indexFinger].s1, newspaper[indexFinger].s2,
+        newspaper[indexFinger].s3, newspaper[indexFinger].s4,
+        newspaper[indexFinger].s5, newspaper[indexFinger].s6,
+        newspaper[indexFinger].s7, newspaper[indexFinger].s8,
+        newspaper[indexFinger].s9, newspaper[indexFinger].sA,
+        newspaper[indexFinger].sB, newspaper[indexFinger].sC,
+        newspaper[indexFinger].sD, newspaper[indexFinger].sE,
+        newspaper[indexFinger].sF);
+        tablet_translate(newspaper[indexFinger], &text_long, text);
+        printf("tablet %s\n", text);
+  }
+
+ } 
+
+
+void probe() {
+  // probe word to number translation
+  uint16_t word_number = 0;
+  v16us newspaper[NEWSPAPER_LONG] = {0};
+  uint16_t newspaper_indexFinger = 0;
+  // probe short grammar
+  const char short_grammar_word[] = "li";
+  const uint8_t short_grammar_word_long = (uint8_t) strlen(short_grammar_word);
+  word_number_encode(short_grammar_word_long, short_grammar_word, &word_number);
+  printf("word_number %X\n", word_number);
+  agree(word_number == 0x1234, "ksashfakhlishsiphwapli", &newspaper_indexFinger, newspaper);
+  // probe long grammar
+  // probe short root
+  // probe long root
+  newspaper_print(newspaper_indexFinger, newspaper);
+}
+
 int main(void) {
   // Generic Algorithm:
   // load text from file
@@ -52,7 +92,7 @@ int main(void) {
   // convert binary to OpenCL source code
 
   // load text from file
-  const char *recipe_text = "kratta krathnimna li zrundofi fe";
+  const char *recipe_text = "kratta krathnimna li zrondofi fe";
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 4;
   v16us recipe[8] = {0};
@@ -121,7 +161,7 @@ int main(void) {
   derive_filename(filename_long, filename, file_sort, &gross_filename_long,
                   gross_filename);
   text_file_addenda(gross_text_long, produce_text, gross_filename);
+  probe();
   return 0;
 }
 
-void Test() {}

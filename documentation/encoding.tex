@@ -318,12 +318,18 @@ words long, that way it fits in a 64bit area --- similar to a 64bit address.
 
 \section{Independent-Clause Code Name}
 
-Each independent-clause can have a code name to help find it's program.
+Decided to make the independant-clause code name actually a universal hash,
+based on the sorts, cases, aspects and mood of the sentence. It's easier that
+way. 
 
-There is a mix of grammatical-cases, sorts and a verb in each independent clause. 
-For matching with modern computer processing, a 64bit thickness is desired,
-though a 128 bit thickness may be possible.\ 
 
+%
+%Each independent-clause can have a code name to help find it's program.
+%
+%There is a mix of grammatical-cases, sorts and a verb in each independent clause. 
+%For matching with modern computer processing, a 64bit thickness is desired,
+%though a 128 bit thickness may be possible.\ 
+%
 The grammatical cases can have a table to make it easy to identify them. 
 
 \begin{table}
@@ -340,60 +346,60 @@ The grammatical cases can have a table to make it easy to identify them.
 \end{tabular}
 \caption{grammtical-case number system}
 \end{table}
-
-five bits to designate the case, and 11 bits for the quote type. 
-
-The context will henceforward be referred to as scene, and the other half being
-the posture. 
-
-\medskip
-
-\begin{table}
-\begin{bytefield}[endianness=little, bitwidth=0.0625\linewidth]{16}
-  \bitheader{0,11,14,15}\\
-   \bitbox{11}{11} & \bitbox{3}{3} & \bitbox{2}{2} & \\
-   \bitbox{11}{QS} & \bitbox{3}{S} & \bitbox{2}{P} & \\
-\end{bytefield}
-\caption{grammtical-case code}
-\begin{description}
-  \item [QS] quote sort~\ref{quotesort}
-  \item [S] scene
-  \item [P] posture
-\end{description}
-\end{table}
-
-This does mean that any independentClause would have a maximum of 
-three grammatical-cases plus a verb if in 64 bit.
-
-\begin{table}
-\begin{bytefield}[endianness=little, bitwidth=0.125\linewidth]{8}
-  \bitheader{0,2,4,6}\\
-  \bitbox{8}{64 tidbit} \\
-  \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{V}  \\
-\end{bytefield}
-
-
-\begin{bytefield}[endianness=little, bitwidth=0.125\linewidth]{8}
-  \bitheader{0,2,4,6}\\
-  \bitbox{8}{VUL2 vector of two 64 tidbit numbers for searching} \\
-  \bitbox{8}{or VUS8 vector of eight 16 tidbit numbers for establishing} \\
-  \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G}  \\
-  \bitbox{2}{V} & \bitbox{2}{V xor T} & \bitbox{2}{V xor A} & \bitbox{2}{Pe}  \\
-\end{bytefield}
-
-\caption{code name sketch}
-\begin{description}
-  \item [G] grammatical-case
-  \item [V] verb
-  \item [T] tense
-  \item [A] aspect
-  \item [Pe] perspective (grammatical-mood)
-\end{description}
-\end{table}
-
-Can also have seperate identifiers for the verb and the grammatical-cases,
-then it would be easier to have multi-word verbs.
-
-
+%
+%five bits to designate the case, and 11 bits for the quote type. 
+%
+%The context will henceforward be referred to as scene, and the other half being
+%the posture. 
+%
+%\medskip
+%
+%\begin{table}
+%\begin{bytefield}[endianness=little, bitwidth=0.0625\linewidth]{16}
+%  \bitheader{0,11,14,15}\\
+%   \bitbox{11}{11} & \bitbox{3}{3} & \bitbox{2}{2} & \\
+%   \bitbox{11}{QS} & \bitbox{3}{S} & \bitbox{2}{P} & \\
+%\end{bytefield}
+%\caption{grammtical-case code}
+%\begin{description}
+%  \item [QS] quote sort~\ref{quotesort}
+%  \item [S] scene
+%  \item [P] posture
+%\end{description}
+%\end{table}
+%
+%This does mean that any independentClause would have a maximum of 
+%three grammatical-cases plus a verb if in 64 bit.
+%
+%\begin{table}
+%\begin{bytefield}[endianness=little, bitwidth=0.125\linewidth]{8}
+%  \bitheader{0,2,4,6}\\
+%  \bitbox{8}{64 tidbit} \\
+%  \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{V}  \\
+%\end{bytefield}
+%
+%
+%\begin{bytefield}[endianness=little, bitwidth=0.125\linewidth]{8}
+%  \bitheader{0,2,4,6}\\
+%  \bitbox{8}{VUL2 vector of two 64 tidbit numbers for searching} \\
+%  \bitbox{8}{or VUS8 vector of eight 16 tidbit numbers for establishing} \\
+%  \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G} & \bitbox{2}{G}  \\
+%  \bitbox{2}{V} & \bitbox{2}{V xor T} & \bitbox{2}{V xor A} & \bitbox{2}{Pe}  \\
+%\end{bytefield}
+%
+%\caption{code name sketch}
+%\begin{description}
+%  \item [G] grammatical-case
+%  \item [V] verb
+%  \item [T] tense
+%  \item [A] aspect
+%  \item [Pe] perspective (grammatical-mood)
+%\end{description}
+%\end{table}
+%
+%Can also have seperate identifiers for the verb and the grammatical-cases,
+%then it would be easier to have multi-word verbs.
+%
+%
 
 %\end{document}
