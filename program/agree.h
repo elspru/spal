@@ -5,6 +5,7 @@
 #define local 
 #define global
 #endif
+#include "seed.h"
 #define NEWSPAPER_LONG 0x10
 
 

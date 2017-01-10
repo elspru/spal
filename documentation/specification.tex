@@ -88,14 +88,6 @@ A newspaper should be at least 16 sentences long, which is one page or 512
 bytes, and less than or equal to 512 sentences, (32 pages), since that is the
 most that could  fit in L1 memory with other processes. 
 
-\section{translate all independentClauses to C}
-
-Any independent-clause can be turned into C.
-
-can be of the form:
-\begin{lstlisting}
-case1_case2_verb_mood (sort1 name, sort2 name); 
-\end{lstlisting}
 
 \section{Memory}
 
@@ -111,3 +103,37 @@ see if it should break early.
 
 That way based on the size of the for loop, the compiler can assign it to run on
 single thread, multi thread CPU, or GPU.\@ 
+
+\section{translate all independentClauses to C}
+
+Any independent-clause can be turned into C.
+
+can be of the form:
+\begin{lstlisting}
+sort1_case1_sort2_case2_verb_mood (sort1 name, sort2 name); 
+\end{lstlisting}
+
+\subsection{C Name Composition}
+
+For C, will need to include the types of the names in order to properly  call
+functions, otherwise would have to have extra searching to locate which
+function is being refered to. 
+
+This will make it a bit like Navajo or Swahili, where the noun class will be
+mandatory. So we should have easy grammar words for them,
+
+for names of things:
+\begin{description}
+  \item[plu] paucal-number 8bit 
+  \item[do]  number 16bit
+  \item[pu] plural-number 32bit
+  \item[ml6h] multal-number 64bit
+  \item[ml6hhsosve] multal-number sixteen vector, vector of 16 64bit values.
+  \item[fe] referrential, pointer
+  \item[crih] letter, char
+  \item[crihfe] letter referrential, char *
+\end{description}
+
+It seems I would only need a hash table lookup for operating on the GPU,
+seems like most of the other stuff can be done with a few conditionals. 
+

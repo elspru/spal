@@ -268,7 +268,6 @@ typedef cl_ushort8 v8us;
 typedef cl_ushort4 v4us;
 #endif
 
-
 #define V8US_LONG 16
 /*#define NULL 0*/
 
@@ -281,7 +280,7 @@ void code_ACC_word_PL(const uint8_t ACC_GEN_size,
                       uint16_t *DAT_code_independentClause,
                       uint8_t *DAT_GEN_remainder);
 void word_number_encode(const uint8_t word_size, const char *word,
-                              uint16_t *number);
+                        uint16_t *number);
 
 void text_copy(const uint8_t size, const char *ACC_text, char *DAT_text);
 

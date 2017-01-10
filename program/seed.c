@@ -122,7 +122,6 @@ uint64_t v4us_uint64_translation(const v4us vector) {
       ((uint64_t)vector.s2 << (16 * 2)) + ((uint64_t)vector.s3 << (16 * 3)));
 }
 
-
 void v16us_write(const uint8_t indexFinger, const uint16_t number,
                  v16us *vector) {
   assert(indexFinger < 16);
@@ -550,7 +549,7 @@ extern inline void code_ACC_consonant_three(const uint8_t type,
   *DAT_number = 0;                                                             \
   return;
 void word_number_encode(const uint8_t ACC_GEN_magnitude, const char *word,
-                              uint16_t *DAT_number) {
+                        uint16_t *DAT_number) {
   /* Algorithm:
       TEL set ACC NUM zero DAT number DEO
       identify type of word
@@ -1622,7 +1621,7 @@ void sort_array_sort(const uint8_t array_long, uint32_t *sort_array) {
 /* assumes number of elements in x is at least BITS_PER_CHAR * MAX_STRING_SIZE
  */
 
-#define BITS_PER_CHAR (32)    /* not true on all machines! */
+#define BITS_PER_CHAR (32)   /* not true on all machines! */
 #define MAX_STRING_SIZE (16) /* we'll stop hashing after this many */
 #define MAX_BITS (BITS_PER_CHAR * MAX_STRING_SIZE)
 #define SEED_NUMBER UINT64_C(0x123456789ABCDEF)
@@ -1667,25 +1666,15 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
   return hash;
 }
 
-void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
-                      uint64_t *code_name) {
-  // new derive_code_name function
-  // get cases and quotes
-  // get topic name along with topic
-  // put each into a 32bit number
-  // then sort the array of 32bit numbers with qsort
-  // then get a 64bit hash of the array from hashlittle64 and return it
-  assert(tablet_magnitude != 0);
-  assert(tablet != NULL);
-  assert(code_name != NULL);
+void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
+uint8_t *sort_array_long,
+uint32_t* sort_array) {
   uint8_t tablet_indexFinger = 1;
   uint16_t indicator_list = 0;
   uint8_t indicator = 0;
   uint8_t tablet_number = 0;
   uint8_t exit = FALSE;
-  // uint8_t maximum_code_indexFinger = 3;
   uint32_t word = 0;
-  uint32_t sort_array[0x10] = {0};
   uint8_t sort_array_indexFinger = 0;
   uint16_t quote_sort = 0;
   // uint8_t code_indexFinger = 0;
@@ -1747,14 +1736,32 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
     if (exit == TRUE)
       break;
   }
-  printf("sort_array_indexFinger %X\n", (uint32_t)sort_array_indexFinger);
+  sort_array_sort(sort_array_indexFinger, sort_array);
+  *sort_array_long = sort_array_indexFinger;
+}
+
+void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
+                      uint64_t *code_name) {
+  // new derive_code_name function
+  // get cases and quotes
+  // get topic name along with topic
+  // put each into a 32bit number
+  // then sort the array of 32bit numbers with qsort
+  // then get a 64bit hash of the array from hashlittle64 and return it
+  assert(tablet_magnitude != 0);
+  assert(tablet != NULL);
+  assert(code_name != NULL);
+  uint8_t sort_array_long = 0;
+  uint32_t sort_array[0x10] = {0};
+  sort_array_establish(tablet_magnitude, tablet, &sort_array_long, sort_array);
+  printf("sort_array_indexFinger %X\n", (uint32_t)sort_array_long);
   printf("unsorted array %X %X %X\n", sort_array[0], sort_array[1],
          sort_array[2]);
-  sort_array_sort(sort_array_indexFinger, sort_array);
+  //sort_array_sort(sort_array_long, sort_array);
   printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
          sort_array[2]);
 
-  *code_name = hash(sort_array_indexFinger, sort_array);
+  *code_name = hash(sort_array_long, sort_array);
 }
 
 inline void play_independentClause(const uint8_t tablet_magnitude,
@@ -2023,41 +2030,41 @@ void tone_code_translation(const uint8_t tone_code, uint8_t *tone_letter,
   }
 }
 
-void long_grammar_code_translation(const uint16_t word_code, uint16_t *text_long,
-                                 char *text) {
+void long_grammar_code_translation(const uint16_t word_code,
+                                   uint16_t *text_long, char *text) {
   assert(text_long != NULL);
   assert(text != NULL);
   // set first h
   uint16_t word_long = 0;
   const uint8_t consonant_one_code =
-      (word_code & SHORT_ROOT_CONSONANT_ONE_MASK) >>
-      SHORT_ROOT_CONSONANT_ONE_BEGIN;
+      (word_code & LONG_GRAMMAR_CONSONANT_ONE_MASK) >>
+      LONG_GRAMMAR_CONSONANT_ONE_BEGIN;
   assert(consonant_one_code < CONSONANT_ONE_ENCODE_LONG);
   uint8_t vocal = FALSE;
   consonant_one_code_translation(consonant_one_code, &vocal, text + word_long);
   ++word_long;
+  const uint8_t consonant_two_code =
+      (word_code & LONG_GRAMMAR_CONSONANT_TWO_MASK) >>
+      LONG_GRAMMAR_CONSONANT_TWO_BEGIN;
+  consonant_two_code_translation(consonant_two_code, vocal, text + word_long);
+  ++word_long;
   const uint8_t vowel_code =
-      (word_code & SHORT_ROOT_VOWEL_MASK) >> SHORT_ROOT_VOWEL_BEGIN;
+      (word_code & LONG_GRAMMAR_VOWEL_MASK) >> LONG_GRAMMAR_VOWEL_BEGIN;
   vowel_code_translation(vowel_code, text + word_long);
   ++word_long;
   const uint8_t tone_code =
-      (word_code & SHORT_ROOT_TONE_MASK) >> SHORT_ROOT_TONE_BEGIN;
+      (word_code & LONG_GRAMMAR_TONE_MASK) >> LONG_GRAMMAR_TONE_BEGIN;
   uint8_t tone_letter = FALSE;
   tone_code_translation(tone_code, &tone_letter, text + word_long);
   if (tone_letter == TRUE) {
     ++word_long;
   }
-  const uint8_t consonant_three_code =
-      (word_code & SHORT_ROOT_CONSONANT_THREE_MASK) >>
-      SHORT_ROOT_CONSONANT_THREE_BEGIN;
-  consonant_three_code_translation(consonant_three_code, text + word_long);
-  ++word_long;
   text[word_long] = 'h';
   ++word_long;
   *text_long = word_long;
 }
-void short_grammar_code_translation(const uint16_t word_code, uint16_t *text_long,
-                                 char *text) {
+void short_grammar_code_translation(const uint16_t word_code,
+                                    uint16_t *text_long, char *text) {
   assert(text_long != NULL);
   assert(text != NULL);
   // set first h
@@ -2172,12 +2179,11 @@ void word_code_translation(const uint16_t word_code, uint16_t *text_long,
   }
 }
 
-void tablet_translate(const v16us tablet, uint16_t *text_long,
-                      char *text) {
+void tablet_translate(const v16us tablet, uint16_t *text_long, char *text) {
   assert(text != NULL);
-  assert(*text == (char) 0);
+  assert(*text == (char)0);
   assert(text_long != NULL);
-  assert(*text_long >= TABLET_LONG*WORD_LONG);
+  assert(*text_long >= TABLET_LONG * WORD_LONG);
   uint16_t word_code = 0;
   uint16_t gross_text_long = 0;
   uint16_t vacancy_text_long = *text_long;
@@ -2229,14 +2235,14 @@ void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
 }
 
 void return_translate(const v16us recipe, uint16_t *produce_text_long,
-                        char *produce_text) {
-      assert(produce_text != NULL);
-      assert(produce_text[0] == (char) 0); // must be clean
-      // get number quote from recipe
-      const uint8_t number_place = 3;
-      const int return_number = (int) v16us_read( number_place, recipe);
-      sprintf(produce_text, "return 0x%X;",return_number);
-      *produce_text_long = (uint16_t) strlen(produce_text);
+                      char *produce_text) {
+  assert(produce_text != NULL);
+  assert(produce_text[0] == (char)0); // must be clean
+  // get number quote from recipe
+  const uint8_t number_place = 3;
+  const int return_number = (int)v16us_read(number_place, recipe);
+  sprintf(produce_text, "return 0x%X;", return_number);
+  *produce_text_long = (uint16_t)strlen(produce_text);
 }
 
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
@@ -2256,6 +2262,40 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   uint8_t phrase_place = 0;
   uint8_t phrase_long = 0;
 
+  // if it ends in _deo or "ta", then translate to ceremony subpoena.
+  const uint16_t indicator_list = (uint16_t)recipe[0].s0;
+  const uint16_t indicator_referential = indicator_list & 1;
+  uint16_t indicator_indexFinger = 0;
+  uint16_t perspective = 0;
+  for (indicator_indexFinger = TABLET_LONG-1; indicator_indexFinger > 0;
+       --indicator_indexFinger) {
+    if ((uint16_t)(((indicator_list >> indicator_indexFinger) & 1) ==
+                   indicator_referential)) {
+      perspective = v16us_read((uint8_t)indicator_indexFinger, recipe[0]);
+      break;
+    }
+  }
+  if (perspective == DEONTIC_MOOD) {
+    printf("ASDFASDAF create subpoena\n");
+    uint8_t sort_array_long = 16;
+    uint8_t tablet_indexFinger = 0;
+    uint32_t sort_array[16];
+    uint16_t word_long = 5;
+    char word[5] = {0};
+    sort_array_establish(1, recipe, &sort_array_long, sort_array);
+    for(tablet_indexFinger = 0; tablet_indexFinger < sort_array_long *2;
+++tablet_indexFinger) {
+  word_code_translation((uint16_t)(((uint16_t*)(&sort_array))[tablet_indexFinger]),
+&word_long, word);
+    printf("B %s ", word);
+    word_long = 5;
+    }
+    tablet_translate(recipe[0], produce_text_long,text);
+    return;
+  }
+  printf("perspective %X", perspective);
+
+  // else see if it is one of the special ones.
   switch (code_number) {
   // case 0x580100010000l:
   case 0xCE328737637E2034: // name topic, name nominative, realis_mood
@@ -2269,13 +2309,15 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     }
     break;
   case 0x037AFB9DDE03DADB: // number return
-      printf("text %X ", (uint) text[0]);
-      return_translate(*recipe, produce_text_long, text);
+    // printf("text %X ", (uint) text[0]);
+    return_translate(*recipe, produce_text_long, text);
     break;
   case 0xA4AC52AD14E8AD38: // finally close curly braces
     *produce_text_long = 1;
     text[0] = '}';
     break;
+  default:
+    *produce_text_long = 0;
   }
 }
 
