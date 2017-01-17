@@ -52,7 +52,7 @@ library_library_dictionary_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)#\
 #         -Wstack-usage=256 # data bytes per warp
 
 # vm 
-bin_PROGRAMS = binary/encoding binary/clprobe binary/spal
+bin_PROGRAMS = binary/encoding binary/clprobe binary/spal binary/spal_dictionary
 binary_spal_SOURCES = program/spal_compile.c 
 binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
      #    -Wstack-usage=32768  #L1 Cache
@@ -79,6 +79,13 @@ binary_clprobe_SOURCES = program/clprobe.c
 binary_clprobe_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
        #  -Wstack-usage=32768  #L1 Cache
 binary_clprobe_LDADD = library/library_genericOpenCL.a 
+
+
+binary_spal_dictionary_SOURCES = program/spal_dictionary.c
+binary_spal_dictionary_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
+       #  -Wstack-usage=32768  #L1 Cache
+binary_spal_dictionary_LDADD = library/library_genericOpenCL.a \
+  library/library_seed.a  library/library_dictionary.a 
 
 # TESTS
 #TESTS = check_vm

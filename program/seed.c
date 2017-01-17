@@ -30,8 +30,8 @@ const char consonant_group[] = {'p', 't', 'k', 'f', 's', 'c', 'x', 'b',
 const uint8_t consonant_group_magnitude = 23;
 const char vowel_group[] = {'i', 'a', 'u', 'e', 'o', '6'};
 const uint8_t vowel_group_magnitude = 6;
-const char tone_group[] = {'7', '_'};
-const uint8_t tone_group_magnitude = 2;
+const char tone_group[] = {'M', '7', '_'};
+const uint8_t tone_group_magnitude = 3;
 #define CONSONANT_ONE_ENCODE_LONG 32
 const uint8_t consonant_one_code_group[CONSONANT_ONE_ENCODE_LONG][2] =
     {/* LOC 0 ESS consonant one */
@@ -74,10 +74,10 @@ const uint8_t vowel_code_group[VOWEL_ENCODE_LONG][2] = {
 #define TONE_ENCODE_LONG 4
 const uint8_t tone_code_group[TONE_ENCODE_LONG][2] = {
     /* LOC 3 ESS tone */
-    {(uint8_t)'M', 0},
-    {(uint8_t)'7', 1},
-    {(uint8_t)'_', 2},
-    {(uint8_t)'5', 3}};
+    {(uint8_t)'E', 0},
+    {(uint8_t)'M', 1},
+    {(uint8_t)'7', 2},
+    {(uint8_t)'_', 3}};
 #define CONSONANT_THREE_ENCODE_LONG 8
 const uint8_t consonant_three_code_group[CONSONANT_THREE_ENCODE_LONG][2] = {
     /* LOC 4 ESS consonant three */
@@ -634,6 +634,8 @@ void word_number_encode(const uint8_t ACC_GEN_magnitude, const char *word,
   if (tone != 0) {
     code_ACC_tone(type, tone, &number);
     // printf("tone %X\n", (uint) number);
+  } else {
+    code_ACC_tone(type, 'M', &number);
   }
   if (consonant_three != 0 && type != LONG_GRAMMAR) {
     code_ACC_consonant_three(type, consonant_three, tone, &number);
@@ -1667,8 +1669,7 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
 }
 
 void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
-uint8_t *sort_array_long,
-uint32_t* sort_array) {
+                          uint8_t *sort_array_long, uint32_t *sort_array) {
   uint8_t tablet_indexFinger = 1;
   uint16_t indicator_list = 0;
   uint8_t indicator = 0;
@@ -1757,7 +1758,7 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   printf("sort_array_indexFinger %X\n", (uint32_t)sort_array_long);
   printf("unsorted array %X %X %X\n", sort_array[0], sort_array[1],
          sort_array[2]);
-  //sort_array_sort(sort_array_long, sort_array);
+  // sort_array_sort(sort_array_long, sort_array);
   printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
          sort_array[2]);
 
@@ -2267,7 +2268,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   const uint16_t indicator_referential = indicator_list & 1;
   uint16_t indicator_indexFinger = 0;
   uint16_t perspective = 0;
-  for (indicator_indexFinger = TABLET_LONG-1; indicator_indexFinger > 0;
+  for (indicator_indexFinger = TABLET_LONG - 1; indicator_indexFinger > 0;
        --indicator_indexFinger) {
     if ((uint16_t)(((indicator_list >> indicator_indexFinger) & 1) ==
                    indicator_referential)) {
@@ -2283,14 +2284,15 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     uint16_t word_long = 5;
     char word[5] = {0};
     sort_array_establish(1, recipe, &sort_array_long, sort_array);
-    for(tablet_indexFinger = 0; tablet_indexFinger < sort_array_long *2;
-++tablet_indexFinger) {
-  word_code_translation((uint16_t)(((uint16_t*)(&sort_array))[tablet_indexFinger]),
-&word_long, word);
-    printf("B %s ", word);
-    word_long = 5;
+    for (tablet_indexFinger = 0; tablet_indexFinger < sort_array_long * 2;
+         ++tablet_indexFinger) {
+      word_code_translation(
+          (uint16_t)(((uint16_t *)(&sort_array))[tablet_indexFinger]),
+          &word_long, word);
+      printf("B %s ", word);
+      word_long = 5;
     }
-    tablet_translate(recipe[0], produce_text_long,text);
+    tablet_translate(recipe[0], produce_text_long, text);
     return;
   }
   printf("perspective %X", perspective);
