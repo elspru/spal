@@ -19,6 +19,8 @@ contact: streondj at gmail dot com
 #ifndef SEED_H
 #define SEED_H
 
+#include "pyashWords.h"
+
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
@@ -93,8 +95,6 @@ contact: streondj at gmail dot com
 #define SILENCE_GLYPH '.'
 #define SILENCE_GLYPH_LONG 1
 
-#define CARDINAL_WORD 0xA1C2
-
 #define POSTURE_TIDBIT 14
 #define SCENE_TIDBIT 11
 #define NAME_TIDBIT 5
@@ -115,9 +115,6 @@ contact: streondj at gmail dot com
 #define INTERIOR_CONTEXT 6
 #define TIME_CONTEXT 7
 
-#define TOPIC_CASE 0x055E
-#define NOMINATIVE_CASE 0x04DE
-
 #define QUOTED_LITERAL_XOR_ADDRESS_INDEXFINGER 8
 #define QUOTED_LITERAL 0
 #define QUOTED_LITERAL_INDEXFINGER 8
@@ -128,14 +125,6 @@ contact: streondj at gmail dot com
 
 #define TRUE 1
 #define FALSE 0
-#define REALIS_MOOD 0x017E
-#define DEONTIC_MOOD 0x095E
-#define CONDITIONAL_MOOD 0x9BE
-#define COUNTERFACTUAL_CONDITIONAL_MOOD 0x159E
-#define ACCUSATIVE_CASE 0x45E
-#define VOCATIVE_CASE 0x08BE
-#define DATIVE_CASE 0x007E
-#define INSTRUMENTAL_CASE 0x087E
 #define QUOTED_WORD_LONG 2
 #define MAX_GRAMMATICALCASE_INE_INDEPENDENTCLAUSE 8
 #define HOOK_LIST_LONG 3
@@ -145,33 +134,6 @@ contact: streondj at gmail dot com
 #define ACCUSATIVE_INDEXFINGER 2
 #define INSTRUMENTAL_INDEXFINGER 1
 #define DATIVE_INDEXFINGER 0
-
-#define RETURN 0x19E               // fi
-#define FINALLY 0xD9E              // fe
-#define QUOTED_GRAMMAR_WORD 0x0A3E // bu
-#define NAME_GRAMMAR_WORD 0x025E   // gi
-#define NUMBER_GRAMMAR_WORD 0x127E // do
-#define SAY_VERB 0x6048            // hsin
-#define SUBTRACTION_VERB 0xC450    // htof
-#define INCREASE_VERB 0x8006       // nyis /* add */
-#define EXCLUSIVEOR_VERB 0xA010
-#define ANDOR_VERB 0x0130 // hnam
-#define NOT_VERB 0xA130   // hnat     /* with conditional ESS toffoli gate  */
-#define ABOVE_VERB 0xC118 // hyaf    /* shift above (left) */h
-#define DOWN_VERB 0x6068  // hcin     /* shift down (right) */
-#define EXCHANGE_VERB 0x63AA // tcen /* with conditional ESS fredkin gate */
-#define TEXT_WORD 0x822A     // twus
-#define NUMBER_WORD 0xE130   // hnac
-#define FLOAT_WORD 0xA26C    // flut
-#define RATIONAL_WORD 0x640E // ryon
-#define INTEGER_WORD 0xC24A  // tsuf
-#define COMPLEX_WORD 0x8462  // klos
-
-#define EQUAL_WORD 0x4124     // pwap
-#define DIFFERENT_WORD 0x60AA // tcin
-#define TRUTH_WORD 0x6109     // syan
-#define LIE_WORD 0x600D       // cyin
-#define ERROR_WORD 0xE4CD     // croc
 
 #define TEXT_CLASS 0x0
 #define NUMBER_CLASS 0x1
@@ -183,28 +145,6 @@ contact: streondj at gmail dot com
 #define UNSIGNED_CHAR_QUOTED 0x009D
 #define SIGNED_CHAR_QUOTED 0x029D
 #define SHORT_NUMBER_QUOTED 0x143D
-// numbers
-#define ZERO_WORD 0x64D4  // zron
-#define ONE_WORD 0x2018   // hyik
-#define TWO_WORD 0xA20A   // tyut
-#define THREE_WORD 0x600A // tyin
-#define FOUR_WORD 0x8142  // ksas
-#define FIVE_WORD 0x612C  // fwan
-#define SIX_WORD 0x80A2
-#define SEVEN_WORD 0xE009
-#define EIGHT_WORD 0xA106 // nyat
-#define NINE_WORD 0x6226
-#define TEN_WORD 0x810A
-#define ELEVEN_WORD 0xE318
-#define TWELVE_WORD 0xC10A
-#define THIRTEEN_WORD 0x63CA
-#define FOURTEEN_WORD 0x8410 // krot
-#define FIFTEEN_WORD 0xE184
-#define SIXTEEN_WORD 0x8448
-#define SEVENTEEN_WORD 0xA309
-#define EIGHTEEN_WORD 0xA398
-#define NINETEEN_WORD 0x6053
-#define TWENTY_WORD 0x804A
 
 #ifndef __has_extension
 #define __has_extension __has_feature // Compatibility with pre-3.0 compilers.

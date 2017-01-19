@@ -6,4 +6,4 @@ make clean
 ./configure
 make
 valgrind -q binary/spal_dictionary probe/pyashWords.txt probe/pyashWords.h
-valgrind -q binary/spal
+valgrind --track-origins=yes -q binary/spal

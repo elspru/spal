@@ -726,22 +726,22 @@ extern inline void establish_ACC_binary_phrase_list(
     }
     tablet[i + 1] = code_text[i];
     switch (code_text[i]) {
-    case ACCUSATIVE_CASE:
+    case accusative_case_GRAMMAR:
       current = (uint8_t)(~current);
       break;
-    case INSTRUMENTAL_CASE:
+    case instrumental_case_GRAMMAR:
       current = (uint8_t)(~current);
       break;
-    case DATIVE_CASE:
+    case dative_case_GRAMMAR:
       current = (uint8_t)(~current);
       break;
-    case VOCATIVE_CASE:
+    case vocative_case_GRAMMAR:
       current = (uint8_t)(~current);
       break;
-    case DEONTIC_MOOD:
+    case deontic_mood_GRAMMAR:
       current = 2;
       break;
-    case REALIS_MOOD:
+    case realis_mood_GRAMMAR:
       current = 2;
       break;
     default:
@@ -768,7 +768,8 @@ void tablet_encoding(const uint8_t code_text_magnitude,
       set remainder as the rest.
       determine if can fit in one tablet or need multiple*/
   for (i = 0; i < code_text_magnitude; i++) {
-    if (code_text[i] == DEONTIC_MOOD || code_text[i] == REALIS_MOOD) {
+    if (code_text[i] == deontic_mood_GRAMMAR ||
+        code_text[i] == realis_mood_GRAMMAR) {
       independentClause_magnitude = (uint8_t)(i + 1);
       break;
     }
@@ -889,11 +890,11 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
   }
   // printf("quote_number %X\n", (uint) quote_number);
   switch (quote_number) {
-  case TEXT_WORD:
+  case text_GRAMMAR:
     *quote_word |= SINGLE_BYTE_QUOTED << QUOTED_GLYPH_THICK_INDEXFINGER;
     *quote_word |= TEXT_CLASS << QUOTED_CLASS_INDEXFINGER;
     break;
-  case NUMBER_WORD:
+  case number_GRAMMAR:
     *quote_word |= NUMBER_CLASS << QUOTED_CLASS_INDEXFINGER;
     break;
   default:
@@ -933,66 +934,66 @@ extern void convert_last_number_to_quote(uint8_t *last_tablet_indexFinger,
   for (; tablet_indexFinger > 0; --tablet_indexFinger) {
     // printf("word %X ", (uint) tablet[0][tablet_indexFinger-1]);
     switch (((uint16_t *)(tablet))[tablet_indexFinger - 1]) {
-    case ZERO_WORD:
+    case zero_WORD:
       ++number_indexFinger;
       break;
-    case ONE_WORD:
+    case one_WORD:
       number |= (uint64_t)(1 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case TWO_WORD:
+    case two_WORD:
       number |= (uint64_t)(2 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case THREE_WORD:
+    case three_WORD:
       number |= (uint64_t)(3 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case FOUR_WORD:
+    case four_WORD:
       number |= (uint64_t)(4 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case FIVE_WORD:
+    case five_WORD:
       number |= (uint64_t)(5 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case SIX_WORD:
+    case six_WORD:
       number |= (uint64_t)(6 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case SEVEN_WORD:
+    case seven_WORD:
       number |= (uint64_t)(7 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case EIGHT_WORD:
+    case eight_WORD:
       number |= (uint64_t)(8 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case NINE_WORD:
+    case nine_WORD:
       number |= (uint64_t)(9 << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case TEN_WORD:
+    case ten_WORD:
       number |= (uint64_t)(0xA << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case ELEVEN_WORD:
+    case eleven_WORD:
       number |= (uint64_t)(0xB << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case TWELVE_WORD:
+    case twelve_WORD:
       number |= (uint64_t)(0xC << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case THIRTEEN_WORD:
+    case thirteen_WORD:
       number |= (uint64_t)(0xD << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case FOURTEEN_WORD:
+    case fourteen_WORD:
       number |= (uint64_t)(0xE << number_indexFinger * 4);
       ++number_indexFinger;
       break;
-    case FIFTEEN_WORD:
+    case fifteen_WORD:
       number |= (uint64_t)(0xF << number_indexFinger * 4);
       ++number_indexFinger;
       break;
@@ -1143,7 +1144,7 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
         if (number != 0) {
           memset(word, 0, WORD_LONG);
           switch (number) {
-          case NUMBER_GRAMMAR_WORD:
+          case number_GRAMMAR:
             /* if preceded by a quote word, then do as a default.
                if preceded by numbers then convert them to a quote,
                and adjust tablet_indexFinger accordingly */
@@ -1163,7 +1164,7 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
               ++tablet_indexFinger;
               break;
             }
-          case QUOTED_GRAMMAR_WORD:
+          case quoted_GRAMMAR:
             // printf("detected quote word %X\n", (uint)text_indexFinger);
             ++text_indexFinger;
             detect_ACC_quote_magnitude(
@@ -1214,70 +1215,70 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
           //
           // break;
 
-          case NOMINATIVE_CASE:
+          case nominative_case_GRAMMAR:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case ACCUSATIVE_CASE:
+          case accusative_case_GRAMMAR:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case INSTRUMENTAL_CASE:
+          case instrumental_case_GRAMMAR:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case TOPIC_CASE:
+          case topic_case_GRAMMAR:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case DATIVE_CASE:
+          case dative_case_GRAMMAR:
             binary_phrase_list ^=
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case VOCATIVE_CASE:
+          case vocative_case_GRAMMAR:
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
             break;
-          case CONDITIONAL_MOOD:
+          case conditional_mood_GRAMMAR:
             v16us_write(tablet_indexFinger, number, tablet);
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             ++tablet_indexFinger;
             break;
-          case DEONTIC_MOOD:
-            v16us_write(tablet_indexFinger, number, tablet);
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            current = 2;
-            ++tablet_indexFinger;
-            break;
-          case REALIS_MOOD:
+          case deontic_mood_GRAMMAR:
             v16us_write(tablet_indexFinger, number, tablet);
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             current = 2;
             ++tablet_indexFinger;
             break;
-          case RETURN:
+          case realis_mood_GRAMMAR:
             v16us_write(tablet_indexFinger, number, tablet);
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
             current = 2;
             ++tablet_indexFinger;
             break;
-          case FINALLY:
+          case return_GRAMMAR:
+            v16us_write(tablet_indexFinger, number, tablet);
+            binary_phrase_list =
+                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
+            current = 2;
+            ++tablet_indexFinger;
+            break;
+          case finally_GRAMMAR:
             v16us_write(tablet_indexFinger, number, tablet);
             binary_phrase_list =
                 (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
@@ -1456,7 +1457,7 @@ void burden_hook_list(const uint8_t tablet_magnitude, const v16us *tablet,
         word = ((uint16_t **)&tablet)[tablet_number][*tablet_indexFinger];
         // printf("BHL word %X\n", (uint)word);
         switch (word) {
-        case ACCUSATIVE_CASE:
+        case accusative_case_GRAMMAR:
           // printf("detected accusative case\n");
           if (quote_word != 0) {
             ((uint16_t *)coded_name)[ACCUSATIVE_INDEXFINGER] = quote_word;
@@ -1470,14 +1471,14 @@ void burden_hook_list(const uint8_t tablet_magnitude, const v16us *tablet,
             quote_word = 0;
           }
           break;
-        case DATIVE_CASE:
+        case dative_case_GRAMMAR:
           if (quote_word != 0) {
             ((uint16_t *)coded_name)[DATIVE_INDEXFINGER] = quote_word;
             hook_list[DATIVE_INDEXFINGER] = quote_fill;
             quote_word = 0;
           }
           break;
-        case INSTRUMENTAL_CASE:
+        case instrumental_case_GRAMMAR:
           if (quote_word != 0) {
             ((uint16_t *)coded_name)[INSTRUMENTAL_INDEXFINGER] = quote_word;
             hook_list[INSTRUMENTAL_INDEXFINGER] = quote_fill;
@@ -1559,7 +1560,7 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
         word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
         // printf("BHL word %X\n", (uint)word);
         switch (word) {
-        case NOMINATIVE_CASE:
+        case nominative_case_GRAMMAR:
           printf("detected nominative case\n");
           code_number =
               (uint16_t)((SOURCE_CASE << POSTURE_TIDBIT) + quote_sort);
@@ -1567,13 +1568,13 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
                      code_name);
           code_indexFinger++;
           break;
-        case ACCUSATIVE_CASE:
+        case accusative_case_GRAMMAR:
           printf("detected accusative case\n");
           ((uint16_t *)code_name)[code_indexFinger] =
               (uint16_t)((LOCATION_CASE << POSTURE_TIDBIT) + quote_sort);
           code_indexFinger++;
           break;
-        case TOPIC_CASE:
+        case topic_case_GRAMMAR:
           printf("detected topic case\n");
           code_number =
               (uint16_t)((WAY_CASE << POSTURE_TIDBIT) +
@@ -1582,14 +1583,14 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
                      code_name);
           code_indexFinger++;
           break;
-        case DATIVE_CASE:
+        case dative_case_GRAMMAR:
           if (quote_sort != 0) {
             ((uint16_t *)code_name)[DATIVE_INDEXFINGER] = quote_sort;
             // hook_list[DATIVE_INDEXFINGER] = quote_fill;
             quote_sort = 0;
           }
           break;
-        case INSTRUMENTAL_CASE:
+        case instrumental_case_GRAMMAR:
           if (quote_sort != 0) {
             ((uint16_t *)code_name)[INSTRUMENTAL_INDEXFINGER] = quote_sort;
             // hook_list[INSTRUMENTAL_INDEXFINGER] = quote_fill;
@@ -1715,16 +1716,16 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
             word | ((uint32_t)quote_sort << 0x10);
         ++sort_array_indexFinger;
         switch (word) {
-        case RETURN:
+        case return_GRAMMAR:
           exit = TRUE;
           break;
-        case CONDITIONAL_MOOD:
+        case conditional_mood_GRAMMAR:
           exit = TRUE;
           break;
-        case DEONTIC_MOOD:
+        case deontic_mood_GRAMMAR:
           exit = TRUE;
           break;
-        case REALIS_MOOD:
+        case realis_mood_GRAMMAR:
           exit = TRUE;
           break;
         }
@@ -1808,7 +1809,7 @@ inline void play_independentClause(const uint8_t tablet_magnitude,
         word = ((uint16_t **)&tablet)[tablet_number][tablet_indexFinger];
         // printf("word %X\n", (uint)word);
         switch (word) {
-        case CONDITIONAL_MOOD:
+        case conditional_mood_GRAMMAR:
           word = ((uint16_t **)&tablet)[tablet_number][tablet_indexFinger - 1];
           // printf("COND word %04X \n", (uint) word);
           ((uint16_t *)coded_name)[VERB_INDEXFINGER] = word;
@@ -1816,8 +1817,8 @@ inline void play_independentClause(const uint8_t tablet_magnitude,
           //       (uint)(*coded_name)[3], (uint)(*coded_name)[2],
           //       (uint)(*coded_name)[1], (uint)(*coded_name)[0]);
           play(*coded_name, hook_list);
-          // if dative is ERROR_WORD then skip to next independentClause
-          if (((uint16_t **)&hook_list)[DATIVE_INDEXFINGER][0] == ERROR_WORD) {
+          // if dative is error_WORD then skip to next independentClause
+          if (((uint16_t **)&hook_list)[DATIVE_INDEXFINGER][0] == error_WORD) {
             exit = TRUE;
           } else {
             ++tablet_indexFinger;
@@ -1832,7 +1833,7 @@ inline void play_independentClause(const uint8_t tablet_magnitude,
             --tablet_indexFinger;
           }
           break;
-        case DEONTIC_MOOD:
+        case deontic_mood_GRAMMAR:
           // quizing verb
           word = v16us_read(tablet_indexFinger - 1, tablet[tablet_number]);
           ((uint16_t *)&coded_name)[VERB_INDEXFINGER] = word;
@@ -1843,7 +1844,7 @@ inline void play_independentClause(const uint8_t tablet_magnitude,
           play((*coded_name), hook_list);
           exit = TRUE;
           break;
-        case REALIS_MOOD:
+        case realis_mood_GRAMMAR:
           // quizing verb
           word = v16us_read(tablet_indexFinger - 1, tablet[tablet_number]);
           ((uint16_t *)coded_name)[VERB_INDEXFINGER] = word;
@@ -1941,10 +1942,10 @@ uint16_t
 grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code) {
   switch (grammaticalCase_code) {
   case 0:
-    return NOMINATIVE_CASE;
+    return nominative_case_GRAMMAR;
     break;
   case 0xB:
-    return TOPIC_CASE;
+    return topic_case_GRAMMAR;
     break;
   default:
     assert(1 == 0); // wrong grammaticalCase_code
@@ -2140,7 +2141,7 @@ void long_root_code_translation(const uint16_t word_code, uint16_t *text_long,
       LONG_ROOT_CONSONANT_TWO_BEGIN;
   consonant_two_code_translation(consonant_two_code, vocal, text + word_long);
   ++word_long;
-  printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
+  //printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
   const uint8_t vowel_code =
       (word_code & LONG_ROOT_VOWEL_MASK) >> LONG_ROOT_VOWEL_BEGIN;
   vowel_code_translation(vowel_code, text + word_long);
@@ -2220,7 +2221,7 @@ void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
   const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   memcpy(produce_text, recipe_text, recipe_text_magnitude);
   *produce_text_long = recipe_text_magnitude;
-  phrase_situate(recipe, NOMINATIVE_CASE, &phrase_place, &phrase_long);
+  phrase_situate(recipe, nominative_case_GRAMMAR, &phrase_place, &phrase_long);
   // word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
   // printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
   // get phrase and translate to text
@@ -2232,7 +2233,7 @@ void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
     filename_long = maximum_filename_long - filename_accumulation_long;
   }
   *produce_filename_long = filename_accumulation_long;
-  *file_sort = CARDINAL_WORD;
+  *file_sort = cardinal_WORD;
 }
 
 void return_translate(const v16us recipe, uint16_t *produce_text_long,
@@ -2276,7 +2277,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
       break;
     }
   }
-  if (perspective == DEONTIC_MOOD) {
+  if (perspective == deontic_mood_GRAMMAR) {
     printf("ASDFASDAF create subpoena\n");
     uint8_t sort_array_long = 16;
     uint8_t tablet_indexFinger = 0;
@@ -2289,7 +2290,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
       word_code_translation(
           (uint16_t)(((uint16_t *)(&sort_array))[tablet_indexFinger]),
           &word_long, word);
-      printf("B %s ", word);
+      //printf("B %s ", word);
       word_long = 5;
     }
     tablet_translate(recipe[0], produce_text_long, text);
@@ -2303,9 +2304,9 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   case 0xCE328737637E2034: // name topic, name nominative, realis_mood
     // probe topic
     // if cardinal  declare main
-    phrase_situate(*recipe, TOPIC_CASE, &phrase_place, &phrase_long);
+    phrase_situate(*recipe, topic_case_GRAMMAR, &phrase_place, &phrase_long);
     word_code = v16us_read((uint8_t)(phrase_place), *recipe);
-    if (word_code == CARDINAL_WORD) {
+    if (word_code == cardinal_WORD) {
       cardinal_translate(*recipe, produce_text_long, text, filename_long,
                          filename, file_sort);
     }
@@ -2331,7 +2332,7 @@ void derive_filename(const uint16_t filename_long, const char *filename,
   assert(*gross_filename_long > filename_long);
   memcpy(gross_filename, filename, filename_long);
   switch (file_sort) {
-  case CARDINAL_WORD:
+  case cardinal_WORD:
     memcpy(gross_filename + filename_long, ".c", 2);
     break;
   default:

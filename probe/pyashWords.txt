@@ -4112,7 +4112,7 @@ hti7s disclaimers
 gxus opportunities
 byuk accused
 kla_t climbed
-hyi7k 1st
+hyi7k n1st
 hs67t planted
 kxi_s easier
 nla7n moonlight
@@ -4209,7 +4209,7 @@ hpu7k portuguese
 jres jersey
 kxum carved
 hgi7n glancing
-tsa_s 4th
+tsa_s n4th
 fyek gospel
 tya7t potatoes
 hva7n warranties
@@ -4279,7 +4279,7 @@ hta_p tops
 hpo7s proportions
 hqa_t headed
 gro7t roared
-twi7n 5th
+twi7n n5th
 hti7p constantinople
 hfi7n inflicted
 qwac lined
@@ -4327,8 +4327,8 @@ hyu7t ghosts
 flup fuller
 ksa7p asp
 bl6k blocks
-sli_t 6th
-tsi_s 10th
+sli_t n6th
+tsi_s n10th
 tyuf stationed
 mra_n admiral
 hro_k rags
@@ -4359,15 +4359,15 @@ txe_m lame
 hg6p gallop
 hpa7m dagger
 tsa_t thrice
-hsi_c 7th
+hsi_c n7th
 tsi7s selfishness
 tri_n tolerably
 hmu7n doe
 tsa7s beads
 hsa_p ascribed
-hpa_c 8th
+hpa_c n8th
 mla7n milan
-hno7c 9th
+hno7c n9th
 pxa7t pleading
 gya7t guides
 tse_t statesmen
@@ -4381,7 +4381,7 @@ cref sheriff
 hmo_k impulses
 hwa_s dynasty
 hki7p dove
-sri7t 12th
+sri7t n12th
 hduf duel
 gxi7n reluctantly
 hya_n ridden
@@ -4440,7 +4440,7 @@ hti7f son_in_law
 hna_f groom
 txi_t noticing
 psi7s particles
-tri7n 3rd
+tri7n n3rd
 myi_n fishermen
 pye7t proverb
 xra_n nursing
@@ -6266,7 +6266,7 @@ hga_c hashish
 hyi_c half_inch
 zwen irrelevance
 kso_s coexist
-tsa_c 1980s
+tsa_c n1980s
 kxe_t calends
 sle7s seychelles
 hre_c crescent_shaped
@@ -7235,7 +7235,7 @@ pxe_t repaint
 swa_k semi_weekly
 pwa_n upholster
 zri_k zircon
-dves 10_20
+dves n10_20
 mwa7k amniotic
 cli7k cyrillic
 dro7n discolouration
@@ -7555,7 +7555,7 @@ mla7c mottle
 pr6_t pericardial
 hvum subsume
 cri7c _archy
-sle_s 10_4
+sle_s n10_4
 jyun acute_angled
 sra7f calligrapher
 kfi_k detoxification
@@ -7947,7 +7947,7 @@ tya7f teethe
 hb67p _ible
 hno_f _naphthol
 bz6s _ose
-dz6n 2000s
+dz6n n2000s
 ry6k aerodynamic
 fre_s anti_federalist
 nwa_s antitoxic

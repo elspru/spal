@@ -80,7 +80,7 @@ static void paper_read(const char *file_name, const size_t paper_number,
   // assert(*paper_size != 0);
 }
 
-//static void paper_write(const char *file_name, const size_t paper_number,
+// static void paper_write(const char *file_name, const size_t paper_number,
 //                        uint16_t paper_size, char *paper_storage) {
 //  FILE *file_spot = NULL;
 //  int answer = 0;
@@ -92,7 +92,8 @@ static void paper_read(const char *file_name, const size_t paper_number,
 //  file_spot = fopen(file_name, "w");
 //  assert(file_spot != NULL);
 //  if (file_spot != NULL) {
-//    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+//    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG,
+//    SEEK_SET);
 //    // assert(answer == 0);
 //    if (answer == 0) {
 //      size = (uint16_t)(fwrite(paper_storage, paper_size, 1, file_spot));
@@ -111,7 +112,8 @@ static void paper_read(const char *file_name, const size_t paper_number,
 //    size = 0;
 //  }
 //}
-static void paper_addenda(const char *file_name, uint16_t paper_size, char *paper_storage) {
+static void paper_addenda(const char *file_name, const uint16_t paper_size,
+                          const char *paper_storage) {
   FILE *file_spot = NULL;
   int answer = 0;
   uint16_t size = 0;
@@ -153,14 +155,14 @@ void define_line_establish(const uint16_t line_long, const char *line_text,
   uint16_t other_word_long = 0;
   uint16_t line_indexFinger = 0;
   uint16_t pyash_code = 0;
-  const char * word_constant = "_WORD";
-  const char * grammar_word_constant = "_GRAMMAR";
+  const char *word_constant = "_WORD";
+  const char *grammar_word_constant = "_GRAMMAR";
   for (line_indexFinger = 0; line_indexFinger < line_long; ++line_indexFinger) {
     if (line_text[line_indexFinger] == HOLLOW_LETTER) {
       break;
     }
   }
-  //printf("%.*s \n", line_long, line_text);
+  // printf("%.*s \n", line_long, line_text);
   assert(line_indexFinger < line_long);
   word_long = line_indexFinger;
   assert(word_long < WORD_LONG + 1);
@@ -176,23 +178,23 @@ void define_line_establish(const uint16_t line_long, const char *line_text,
   *define_list_deviation += other_word_long;
   // if pyash word ends in h, or is less than 4 long, then GRAMWORD
   if (line_text[word_long - 1] == 'h' || word_long < 4) {
-  *define_list_deviation += sprintf(define_list_text + *define_list_deviation,
-                                    "%s 0x%04X // %.*s\n", grammar_word_constant
-      , pyash_code, word_long, line_text);
+    *define_list_deviation += sprintf(
+        define_list_text + *define_list_deviation, "%s 0x%04X // %.*s\n",
+        grammar_word_constant, pyash_code, word_long, line_text);
   } else {
-  *define_list_deviation += sprintf(define_list_text + *define_list_deviation,
-                                    "%s 0x%04X // %.*s\n", word_constant,
-    pyash_code, word_long, line_text);
+    *define_list_deviation += sprintf(define_list_text + *define_list_deviation,
+                                      "%s 0x%04X // %.*s\n", word_constant,
+                                      pyash_code, word_long, line_text);
   }
-  printf("dll %X dld %X %.*s \n", define_list_long, *define_list_deviation,
-         line_long, line_text);
+  //printf("dll %X dld %X %.*s \n", define_list_long, *define_list_deviation,
+  //       line_long, line_text);
   //--*define_list_deviation;// -= 2; // take off the null
   assert(define_list_long > *define_list_deviation);
 }
 
 void define_list_establish(const uint16_t paper_long, const char *paper_text,
-                           uint16_t * define_list_long,
-                           char *define_list_text, uint16_t *remains) {
+                           uint16_t *define_list_long, char *define_list_text,
+                           uint16_t *remains) {
   // loop for new lines
   // each line is processed to single definition
   uint16_t indexFinger = 0;
@@ -204,9 +206,10 @@ void define_list_establish(const uint16_t paper_long, const char *paper_text,
                             paper_text + line_begin_indexFinger,
                             *define_list_long, define_list_text,
                             &define_list_deviation);
-      printf("DLT `%.*s'", indexFinger - line_begin_indexFinger,paper_text+line_begin_indexFinger);
+      //printf("DLT `%.*s'", indexFinger - line_begin_indexFinger,
+      //       paper_text + line_begin_indexFinger);
       line_begin_indexFinger = indexFinger + 1;
-      printf("DLT `%.*s'", 10,paper_text+line_begin_indexFinger);
+      //printf("DLT `%.*s'", 10, paper_text + line_begin_indexFinger);
     }
   }
   *define_list_long = define_list_deviation;
@@ -232,7 +235,12 @@ int main(int argc, char *argv[]) {
   uint16_t produce_paper_long = maximum_produce_paper_long;
   uint16_t paper_remains = 0;
   uint16_t paper_deviation = 0;
+  const char *introductory_text = "#ifndef PYASH_H\n#define PYASH_H\n";
+  const uint16_t introductory_text_long = (uint16_t)strlen(introductory_text);
+  const char *finally_text = "#endif\n";
+  const uint16_t finally_text_long = (uint16_t)strlen(finally_text);
   remove(produce_filename);
+  paper_addenda(produce_filename, introductory_text_long, introductory_text);
   for (paper_indexFinger = 0;
        paper_indexFinger < MAXIMUM_PAPER_MAGNITUDE && paper_long != 0;
        ++paper_indexFinger) {
@@ -240,24 +248,27 @@ int main(int argc, char *argv[]) {
     paper_read(filename, paper_indexFinger, &paper_long - paper_deviation,
                paper_text + paper_deviation);
     // printf("%s\n", paper_text);
-    printf("`%.*s' paper_long 0x%X paper_number 0x%X\n", paper_deviation + 10,
-      paper_text, paper_long, paper_indexFinger);
+    // printf("`%.*s' paper_long 0x%X paper_number 0x%X\n", paper_deviation +
+    // 10,
+    //  paper_text, paper_long, paper_indexFinger);
     // process paper_text into produce_paper and mention text remains
     define_list_establish(paper_long + paper_deviation, paper_text,
                           &produce_paper_long, produce_paper_text,
                           &paper_remains);
-    printf("PPT %.*s paper_remains %X \n", paper_remains, paper_text +
-((paper_long + paper_deviation) - paper_remains), paper_remains);
+    // printf("PPT %.*s paper_remains %X \n", paper_remains,
+    //       paper_text + ((paper_long + paper_deviation) - paper_remains),
+    //       paper_remains);
     // append produce_text to output file
     // paper_write(produce_filename, paper_number,
     //                    uint16_t paper_size, char *paper_storage) {
     paper_addenda(produce_filename, produce_paper_long, produce_paper_text);
 
     // clear paper and set paper long accordingly
-    //printf("pl %X ppt %.*s \n", paper_long, paper_remains,
+    // printf("pl %X ppt %.*s \n", paper_long, paper_remains,
     //       paper_text + (paper_long - (paper_remains)));
-    //paper_remains;
-    memcpy(paper_text, paper_text + (paper_long + paper_deviation - paper_remains),
+    // paper_remains;
+    memcpy(paper_text,
+           paper_text + (paper_long + paper_deviation - paper_remains),
            paper_remains);
     paper_deviation = paper_remains;
     memset(paper_text + paper_remains, 0,
@@ -266,6 +277,7 @@ int main(int argc, char *argv[]) {
     memset(produce_paper_text, 0, maximum_produce_paper_long);
     produce_paper_long = maximum_produce_paper_long;
   }
+  paper_addenda(produce_filename, finally_text_long, finally_text);
   //
   // translation file:
   // for each line generate code for pyash_word, and put foreign_word in 30byte
