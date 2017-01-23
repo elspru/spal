@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 contact: streondj at gmail dot com
 */
 
-#include <assert.h>
+#include <assert.h> // NOT opencl compatible
 #include <stdio.h>  // NOT opencl compatible
 #include <string.h> // NOT opencl compatible// uses memset and memcmp
 
@@ -1612,21 +1612,21 @@ void derive_code_name(const uint8_t tablet_magnitude, const v16us *tablet,
 }
 
 int compare(const void *a, const void *b) {
-  return (int)(*(uint32_t *)a - *(uint32_t *)b);
+  return (int)(*(uint64_t *)a - *(uint64_t *)b);
 }
 
-void sort_array_sort(const uint8_t array_long, uint32_t *sort_array) {
+void sort_array_sort(const uint8_t array_long, uint64_t *sort_array) {
   assert(sort_array != NULL);
-  qsort(sort_array, array_long, sizeof(uint32_t), compare);
+  qsort(sort_array, array_long, sizeof(uint64_t), compare);
 }
 
 /* implements universal hashing using random bit-vectors in x */
-/* assumes number of elements in x is at least BITS_PER_CHAR * MAX_STRING_SIZE
+/* assumes number of elements in x is at least BITS_PER_CODE_NAME * MAX_STRING_SIZE
  */
 
-#define BITS_PER_CHAR (32)   /* not true on all machines! */
+#define BITS_PER_CODE_NAME (64)   /* not true on all machines! */
 #define MAX_STRING_SIZE (16) /* we'll stop hashing after this many */
-#define MAX_BITS (BITS_PER_CHAR * MAX_STRING_SIZE)
+#define MAX_BITS (BITS_PER_CODE_NAME * MAX_STRING_SIZE)
 #define SEED_NUMBER UINT64_C(0x123456789ABCDEF)
 
 uint64_t splitMix64(uint64_t *seed) {
@@ -1636,12 +1636,12 @@ uint64_t splitMix64(uint64_t *seed) {
   return z ^ (z >> 31);
 }
 
-uint64_t hash(const uint8_t array_length, const uint32_t *array) {
+uint64_t hash(const uint8_t array_length, const uint64_t *array) {
   uint64_t hash;
   uint8_t array_indexFinger = 0;
-  uint8_t bit_indexFinger = 0;
+  /*uint8_t bit_indexFinger = 0;*/
   uint64_t random_seed = SEED_NUMBER;
-  uint32_t c;
+  uint64_t c;
   uint64_t hash_number = 0;
   int shift;
 
@@ -1653,7 +1653,7 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
   for (array_indexFinger = 0; array_indexFinger < array_length;
        ++array_indexFinger) {
     c = array[array_indexFinger];
-    for (shift = 0; shift < BITS_PER_CHAR; ++shift, ++bit_indexFinger) {
+    for (shift = 0; shift < BITS_PER_CODE_NAME; ++shift/*, ++bit_indexFinger*/) {
       /* is low bit of c set? */
       hash_number = splitMix64(&random_seed);
       if (c & 0x1) {
@@ -1669,16 +1669,45 @@ uint64_t hash(const uint8_t array_length, const uint32_t *array) {
   return hash;
 }
 
+void verb_copy(const uint8_t tablet_indexFinger, const v16us tablet,
+               uint64_t *phrase) {
+  // copies the remainder of phrase from back,
+  //  stops if indicator says start of a phrase
+  assert(phrase != NULL);
+  assert(tablet_indexFinger > 0 && tablet_indexFinger < TABLET_LONG);
+  const uint16_t indicator_list = (uint16_t)tablet.s0;
+  const uint8_t indicator = 1 & indicator_list;
+  uint8_t indexFinger = tablet_indexFinger - 1;
+  *phrase = 0;
+  *phrase = (uint64_t)v16us_read(tablet_indexFinger, tablet);
+  for (; indexFinger > tablet_indexFinger - (CODE_NAME_WORD_LONG - 1);
+       --indexFinger) {
+    if (((indicator_list >> indexFinger) & 1) == indicator) {
+      break;
+    }
+    *phrase |= ((uint64_t)v16us_read(indexFinger, tablet))
+               << (CODE_WORD_BIT_LONG * (tablet_indexFinger - indexFinger));
+  }
+}
+
 void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
-                          uint8_t *sort_array_long, uint32_t *sort_array) {
+                          uint8_t *sort_array_long, uint64_t *sort_array) {
+  assert(sort_array_long != NULL);
+  assert(sort_array != NULL);
+  assert(tablet != NULL);
+  assert(tablet_magnitude > 0);
+  // algorithm
+  // include cases, types, topic, and verb
+  // include
   uint8_t tablet_indexFinger = 1;
   uint16_t indicator_list = 0;
   uint8_t indicator = 0;
   uint8_t tablet_number = 0;
   uint8_t exit = FALSE;
-  uint32_t word = 0;
+  uint16_t word = 0;
   uint8_t sort_array_indexFinger = 0;
   uint16_t quote_sort = 0;
+  uint64_t phrase = 0;
   // uint8_t code_indexFinger = 0;
   // v8us quote_fill = {{0}};
   indicator_list = v16us_read(0, *tablet);
@@ -1690,15 +1719,13 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
   for (tablet_number = 0; tablet_number < tablet_magnitude; ++tablet_number) {
     for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
       // if previous is indicated then quiz if is quote
-      quote_sort = 1;
-      if (((indicator_list & (1 << (tablet_indexFinger - 1))) >>
-           (tablet_indexFinger - 1)) == indicator &&
+      quote_sort = 0;
+      if (((indicator_list >> (tablet_indexFinger - 1)) & 1) == indicator &&
           (v16us_read(tablet_indexFinger, tablet[0]) &
            (uint16_t)CONSONANT_ONE_MASK) == (uint16_t)QUOTED_DENOTE) {
         // check if is quote, if yes then copy it over to coded name
-        quote_sort = (uint16_t)(v16us_read(tablet_indexFinger, tablet[0]) >>
-                                CONSONANT_ONE_THICK);
-        // word = (uint32_t)quote_sort << 0x10;
+        quote_sort = (uint16_t)(v16us_read(tablet_indexFinger, tablet[0]));
+        // word = (uint64_t)quote_sort << 0x10;
       }
       // check word before the grammatical-case, see if it is a name type.
       // if it is, then copy it over to coded name.
@@ -1708,14 +1735,18 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
       // printf("tablet_indexFinger %X", tablet_indexFinger);
       // printf("testing %X ",
       //      ((indicator_list >> tablet_indexFinger) & 1));
+      // if is one of the indicated grammatical words
       if (((indicator_list >> tablet_indexFinger) & 1) == indicator) {
         // printf("tablet_indexFinger2 %X\n", tablet_indexFinger);
-        word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
-        // printf("word %X", word);
-        sort_array[sort_array_indexFinger] =
-            word | ((uint32_t)quote_sort << 0x10);
-        ++sort_array_indexFinger;
+        // printf("case detected q %016lX\n",
+        // sort_array[sort_array_indexFinger]);
         switch (word) {
+        case topic_case_GRAMMAR:
+          verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+          sort_array[sort_array_indexFinger] |= phrase;
+          // printf("topic case set %016lX\n",
+          // sort_array[sort_array_indexFinger]);
+          break;
         case return_GRAMMAR:
           exit = TRUE;
           break;
@@ -1728,10 +1759,25 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
         case realis_mood_GRAMMAR:
           exit = TRUE;
           break;
+        default:
+        word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
+        sort_array[sort_array_indexFinger] = (uint64_t)0;
+        sort_array[sort_array_indexFinger] = word;
+        //  printf("case detected %016lX\n",
+        //  sort_array[sort_array_indexFinger]);
+        sort_array[sort_array_indexFinger] |= ((uint64_t)quote_sort << 0x10);
+          
+          break;
         }
+        ++sort_array_indexFinger;
       }
       // printf("exit %X\n", exit);
       if (exit == TRUE) {
+        // load verb
+        verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+        sort_array[sort_array_indexFinger] |= phrase;
+        // printf("verb set %016lX\n", sort_array[sort_array_indexFinger]);
+        ++sort_array_indexFinger;
         break;
       }
     }
@@ -1747,6 +1793,7 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   // new derive_code_name function
   // get cases and quotes
   // get topic name along with topic
+  // get verb
   // put each into a 32bit number
   // then sort the array of 32bit numbers with qsort
   // then get a 64bit hash of the array from hashlittle64 and return it
@@ -1754,15 +1801,19 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   assert(tablet != NULL);
   assert(code_name != NULL);
   uint8_t sort_array_long = 0;
-  uint32_t sort_array[0x10] = {0};
+  uint64_t sort_array[0x10] = {0};
   sort_array_establish(tablet_magnitude, tablet, &sort_array_long, sort_array);
-  printf("sort_array_indexFinger %X\n", (uint32_t)sort_array_long);
-  printf("unsorted array %X %X %X\n", sort_array[0], sort_array[1],
-         sort_array[2]);
+  // printf("sort_array_indexFinger %X\n", (uint64_t)sort_array_long);
+  // printf("unsorted array %X %X %X\n", sort_array[0], sort_array[1],
+  //      sort_array[2]);
   // sort_array_sort(sort_array_long, sort_array);
-  printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
-         sort_array[2]);
+  // printf("sorted array %X %X %X\n", sort_array[0], sort_array[1],
+  //       sort_array[2]);
 
+  uint8_t indexFinger = 0;
+  for (; indexFinger < sort_array_long; ++indexFinger ){
+    printf("%016lX ", sort_array[indexFinger]);
+  } 
   *code_name = hash(sort_array_long, sort_array);
 }
 
@@ -2141,7 +2192,7 @@ void long_root_code_translation(const uint16_t word_code, uint16_t *text_long,
       LONG_ROOT_CONSONANT_TWO_BEGIN;
   consonant_two_code_translation(consonant_two_code, vocal, text + word_long);
   ++word_long;
-  //printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
+  // printf("consonant_two_code %X, text %s\n", consonant_two_code, text);
   const uint8_t vowel_code =
       (word_code & LONG_ROOT_VOWEL_MASK) >> LONG_ROOT_VOWEL_BEGIN;
   vowel_code_translation(vowel_code, text + word_long);
@@ -2278,10 +2329,10 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     }
   }
   if (perspective == deontic_mood_GRAMMAR) {
-    printf("ASDFASDAF create subpoena\n");
+    // printf("ASDFASDAF create subpoena\n");
     uint8_t sort_array_long = 16;
     uint8_t tablet_indexFinger = 0;
-    uint32_t sort_array[16];
+    uint64_t sort_array[16] = {0};
     uint16_t word_long = 5;
     char word[5] = {0};
     sort_array_establish(1, recipe, &sort_array_long, sort_array);
@@ -2290,7 +2341,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
       word_code_translation(
           (uint16_t)(((uint16_t *)(&sort_array))[tablet_indexFinger]),
           &word_long, word);
-      //printf("B %s ", word);
+      // printf("B %s ", word);
       word_long = 5;
     }
     tablet_translate(recipe[0], produce_text_long, text);
@@ -2301,12 +2352,12 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   // else see if it is one of the special ones.
   switch (code_number) {
   // case 0x580100010000l:
-  case 0xCE328737637E2034: // name topic, name nominative, realis_mood
+  case 0xB2DE4B4DB3E433C9: // name topic, name nominative, begin, realis_mood
     // probe topic
     // if cardinal  declare main
     phrase_situate(*recipe, topic_case_GRAMMAR, &phrase_place, &phrase_long);
     word_code = v16us_read((uint8_t)(phrase_place), *recipe);
-    if (word_code == cardinal_WORD) {
+    if (word_code == program_WORD) {
       cardinal_translate(*recipe, produce_text_long, text, filename_long,
                          filename, file_sort);
     }

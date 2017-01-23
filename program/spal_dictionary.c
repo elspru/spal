@@ -186,7 +186,7 @@ void define_line_establish(const uint16_t line_long, const char *line_text,
                                       "%s 0x%04X // %.*s\n", word_constant,
                                       pyash_code, word_long, line_text);
   }
-  //printf("dll %X dld %X %.*s \n", define_list_long, *define_list_deviation,
+  // printf("dll %X dld %X %.*s \n", define_list_long, *define_list_deviation,
   //       line_long, line_text);
   //--*define_list_deviation;// -= 2; // take off the null
   assert(define_list_long > *define_list_deviation);
@@ -206,10 +206,10 @@ void define_list_establish(const uint16_t paper_long, const char *paper_text,
                             paper_text + line_begin_indexFinger,
                             *define_list_long, define_list_text,
                             &define_list_deviation);
-      //printf("DLT `%.*s'", indexFinger - line_begin_indexFinger,
+      // printf("DLT `%.*s'", indexFinger - line_begin_indexFinger,
       //       paper_text + line_begin_indexFinger);
       line_begin_indexFinger = indexFinger + 1;
-      //printf("DLT `%.*s'", 10, paper_text + line_begin_indexFinger);
+      // printf("DLT `%.*s'", 10, paper_text + line_begin_indexFinger);
     }
   }
   *define_list_long = define_list_deviation;

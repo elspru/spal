@@ -21,6 +21,7 @@ SUBDIRS = .
 noinst_LIBRARIES =  library/library_seed.a \
                     library/library_genericOpenCL.a \
                     library/library_dictionary.a \
+                    library/library_dialogue.a
                     # library/library_simpleCL.a \
                     # library/library_programmer.a  \
                     # library/library_random.a 
@@ -37,6 +38,10 @@ library_library_genericOpenCL_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
 #library_library_simpleCL_a_SOURCES = program/simple-opencl/simpleCL.c program/simple-opencl/simpleCL.h
 #library_library_simpleCL_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
 #      #   -Wstack-usage=256 # data bytes per warp
+
+library_library_dialogue_a_SOURCES = program/dialogue.c \
+                program/dialogue.h
+library_library_dialogue_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
 
 library_library_dictionary_a_SOURCES = program/dictionary.c \
                 program/dictionary.h
@@ -57,8 +62,9 @@ binary_spal_SOURCES = program/spal_compile.c
 binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
      #    -Wstack-usage=32768  #L1 Cache
 binary_spal_LDADD =  library/library_seed.a \
-          library/library_genericOpenCL.a library/library_dictionary.a 
-#          library/library_simpleCL.a
+          library/library_genericOpenCL.a library/library_dictionary.a  \
+        library/library_dialogue.a
+#          library/library_simpleCL.a 
 
 #binary_programmer_SOURCES = program/opencl_programmer.c 
 #binary_programmer_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) \

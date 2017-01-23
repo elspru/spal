@@ -33,6 +33,7 @@ contact: streondj at gmail dot com
 #define MAX_LONG 0xFFU
 #define INDEPENDENTCLAUSE_LONG 0xFF
 #define WORD_LONG 0x05
+#define CODE_WORD_BIT_LONG 0x10
 #define ERROR_BINARY 0
 #define LONG_ROOT 1
 #define SHORT_ROOT 2
@@ -84,6 +85,7 @@ contact: streondj at gmail dot com
 #define TONE_THICK 2
 #define TABLET_BYTE_LONG 0x20
 #define TABLET_LONG 0x10
+#define CODE_NAME_WORD_LONG 0x4
 #define TABLET_WORD_LONG 0xF
 #define MAX_INDEPENDENTCLAUSE_TABLET 0x4
 #define QUOTED_DENOTE 0x1D
