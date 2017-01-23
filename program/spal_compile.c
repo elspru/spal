@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
   uint16_t gross_text_long = 0;
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
-    code_opencl_translate(recipe_magnitude, &(recipe[recipe_indexFinger]),
+    code_opencl_translate(1, &(recipe[recipe_indexFinger]),
                           &produce_text_long, produce_text + gross_text_long,
                           &filename_long, filename, &file_sort);
     // text_file_addenda(produce_text_long, produce_text, gross_filename);

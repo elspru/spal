@@ -922,15 +922,27 @@ extern inline void fit_quote_magnitude(const uint8_t quote_magnitude,
   }
 }
 
-extern void convert_last_number_to_quote(uint8_t *last_tablet_indexFinger,
+extern void convert_last_number_to_quote(uint8_t *terminator_indexFinger,
                                          v16us *tablet) {
   uint8_t tablet_indexFinger;
   uint8_t number_indexFinger = 0;
   uint64_t number = 0;
   uint8_t finish = FALSE;
-  assert(*last_tablet_indexFinger > 0);
+  uint16_t indicator_list = (uint16_t)tablet[0].s0;
+  uint8_t indicator = indicator_list & 1;
+  uint8_t retrospective_phrase_indexFinger = *terminator_indexFinger - 1;
+  assert(*terminator_indexFinger > 0);
   assert(tablet != NULL);
-  tablet_indexFinger = *last_tablet_indexFinger;
+  // find last phrase indexFinger
+  for (; retrospective_phrase_indexFinger < *terminator_indexFinger;
+       --retrospective_phrase_indexFinger) {
+    if (((indicator_list >> retrospective_phrase_indexFinger) & 1) ==
+        indicator) {
+      // found last phrase
+      break;
+    }
+  }
+  tablet_indexFinger = *terminator_indexFinger;
   for (; tablet_indexFinger > 0; --tablet_indexFinger) {
     // printf("word %X ", (uint) tablet[0][tablet_indexFinger-1]);
     switch (((uint16_t *)(tablet))[tablet_indexFinger - 1]) {
@@ -1008,11 +1020,15 @@ extern void convert_last_number_to_quote(uint8_t *last_tablet_indexFinger,
   // printf("number %X, tablet_indexFinger %X, number_indexFinger %X\n",
   // (uint)number,
   //       (uint)tablet_indexFinger, (uint)number_indexFinger);
+  printf("number %lX\n", number);
   if (number <= 0xFFFF) {
-    *last_tablet_indexFinger = (uint8_t)(tablet_indexFinger + 1);
-    v16us_write(tablet_indexFinger, (uint16_t)(SHORT_NUMBER_QUOTED), tablet);
-    ++tablet_indexFinger;
-    v16us_write(tablet_indexFinger, (uint16_t)(number), tablet);
+    printf("RPI %X\n", retrospective_phrase_indexFinger);
+    v16us_write(retrospective_phrase_indexFinger,
+                (uint16_t)(SHORT_NUMBER_QUOTED), tablet);
+    ++retrospective_phrase_indexFinger;
+    v16us_write(retrospective_phrase_indexFinger, (uint16_t)(number), tablet);
+    *terminator_indexFinger = (uint8_t)(retrospective_phrase_indexFinger);
+    printf("RPI %X\n", retrospective_phrase_indexFinger);
   }
   assert(number_indexFinger <= 2);
 }
@@ -1621,11 +1637,12 @@ void sort_array_sort(const uint8_t array_long, uint64_t *sort_array) {
 }
 
 /* implements universal hashing using random bit-vectors in x */
-/* assumes number of elements in x is at least BITS_PER_CODE_NAME * MAX_STRING_SIZE
+/* assumes number of elements in x is at least BITS_PER_CODE_NAME *
+ * MAX_STRING_SIZE
  */
 
-#define BITS_PER_CODE_NAME (64)   /* not true on all machines! */
-#define MAX_STRING_SIZE (16) /* we'll stop hashing after this many */
+#define BITS_PER_CODE_NAME (64) /* not true on all machines! */
+#define MAX_STRING_SIZE (16)    /* we'll stop hashing after this many */
 #define MAX_BITS (BITS_PER_CODE_NAME * MAX_STRING_SIZE)
 #define SEED_NUMBER UINT64_C(0x123456789ABCDEF)
 
@@ -1653,7 +1670,8 @@ uint64_t hash(const uint8_t array_length, const uint64_t *array) {
   for (array_indexFinger = 0; array_indexFinger < array_length;
        ++array_indexFinger) {
     c = array[array_indexFinger];
-    for (shift = 0; shift < BITS_PER_CODE_NAME; ++shift/*, ++bit_indexFinger*/) {
+    for (shift = 0; shift < BITS_PER_CODE_NAME;
+         ++shift /*, ++bit_indexFinger*/) {
       /* is low bit of c set? */
       hash_number = splitMix64(&random_seed);
       if (c & 0x1) {
@@ -1686,7 +1704,7 @@ void verb_copy(const uint8_t tablet_indexFinger, const v16us tablet,
       break;
     }
     *phrase |= ((uint64_t)v16us_read(indexFinger, tablet))
-               << (CODE_WORD_BIT_LONG * (tablet_indexFinger - indexFinger));
+               << (CODE_WORD_TIDBIT_LONG * (tablet_indexFinger - indexFinger));
   }
 }
 
@@ -1717,15 +1735,16 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
   //
   //
   for (tablet_number = 0; tablet_number < tablet_magnitude; ++tablet_number) {
-    for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
+    quote_sort = 0;
+    for (tablet_indexFinger = 1; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
       // if previous is indicated then quiz if is quote
-      quote_sort = 0;
       if (((indicator_list >> (tablet_indexFinger - 1)) & 1) == indicator &&
           (v16us_read(tablet_indexFinger, tablet[0]) &
            (uint16_t)CONSONANT_ONE_MASK) == (uint16_t)QUOTED_DENOTE) {
         // check if is quote, if yes then copy it over to coded name
         quote_sort = (uint16_t)(v16us_read(tablet_indexFinger, tablet[0]));
-        // word = (uint64_t)quote_sort << 0x10;
+        printf("quote detected %04X\n", quote_sort);
+        // word = (uint64_t)quote_sort << CODE_WORD_TIDBIT_LONG;
       }
       // check word before the grammatical-case, see if it is a name type.
       // if it is, then copy it over to coded name.
@@ -1740,42 +1759,60 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
         // printf("tablet_indexFinger2 %X\n", tablet_indexFinger);
         // printf("case detected q %016lX\n",
         // sort_array[sort_array_indexFinger]);
+        word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
+        //printf("word %04X SAI%X\n", word, sort_array_indexFinger);
         switch (word) {
         case topic_case_GRAMMAR:
           verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
           sort_array[sort_array_indexFinger] |= phrase;
-          // printf("topic case set %016lX\n",
-          // sort_array[sort_array_indexFinger]);
+          printf("topic case set %016lX\n",
+           sort_array[sort_array_indexFinger]);
+          ++sort_array_indexFinger;
           break;
         case return_GRAMMAR:
+          word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
+          sort_array[sort_array_indexFinger] = (uint64_t)0;
+          sort_array[sort_array_indexFinger] = word;
+          sort_array[sort_array_indexFinger] |= ((uint64_t)quote_sort)
+                                                << CODE_WORD_TIDBIT_LONG;
+          //printf("return detected %016lX\n",
+          //       sort_array[sort_array_indexFinger]);
           exit = TRUE;
           break;
         case conditional_mood_GRAMMAR:
+          verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+          sort_array[sort_array_indexFinger] |= phrase;
           exit = TRUE;
           break;
         case deontic_mood_GRAMMAR:
+          verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+          sort_array[sort_array_indexFinger] |= phrase;
           exit = TRUE;
           break;
         case realis_mood_GRAMMAR:
+          verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+          sort_array[sort_array_indexFinger] |= phrase;
+          exit = TRUE;
+          break;
+        case finally_GRAMMAR:
+          verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
+          sort_array[sort_array_indexFinger] |= phrase;
           exit = TRUE;
           break;
         default:
-        word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
-        sort_array[sort_array_indexFinger] = (uint64_t)0;
-        sort_array[sort_array_indexFinger] = word;
-        //  printf("case detected %016lX\n",
-        //  sort_array[sort_array_indexFinger]);
-        sort_array[sort_array_indexFinger] |= ((uint64_t)quote_sort << 0x10);
-          
+          sort_array[sort_array_indexFinger] = (uint64_t)0;
+          sort_array[sort_array_indexFinger] = word;
+          sort_array[sort_array_indexFinger] |=
+              ((uint64_t)quote_sort << CODE_WORD_TIDBIT_LONG);
+          printf("case detected %016lX\n", sort_array[sort_array_indexFinger]);
+          quote_sort = 0;
+          ++sort_array_indexFinger;
           break;
         }
-        ++sort_array_indexFinger;
       }
       // printf("exit %X\n", exit);
       if (exit == TRUE) {
         // load verb
-        verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
-        sort_array[sort_array_indexFinger] |= phrase;
         // printf("verb set %016lX\n", sort_array[sort_array_indexFinger]);
         ++sort_array_indexFinger;
         break;
@@ -1811,9 +1848,11 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   //       sort_array[2]);
 
   uint8_t indexFinger = 0;
-  for (; indexFinger < sort_array_long; ++indexFinger ){
+  printf("sort_array ");
+  for (; indexFinger < sort_array_long; ++indexFinger) {
     printf("%016lX ", sort_array[indexFinger]);
-  } 
+  }
+  printf("\n");
   *code_name = hash(sort_array_long, sort_array);
 }
 

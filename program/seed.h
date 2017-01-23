@@ -33,7 +33,7 @@ contact: streondj at gmail dot com
 #define MAX_LONG 0xFFU
 #define INDEPENDENTCLAUSE_LONG 0xFF
 #define WORD_LONG 0x05
-#define CODE_WORD_BIT_LONG 0x10
+#define CODE_WORD_TIDBIT_LONG 0x10
 #define ERROR_BINARY 0
 #define LONG_ROOT 1
 #define SHORT_ROOT 2
@@ -41,8 +41,8 @@ contact: streondj at gmail dot com
 #define SHORT_GRAMMAR 4
 #define SHORT_ROOT_DENOTE 0
 #define LONG_GRAMMAR_DENOTE 7
-#define QUOTE_DENOTE 29
-#define SHORT_GRAMMAR_DENOTE 30
+#define QUOTE_DENOTE 0x1D
+#define SHORT_GRAMMAR_DENOTE 0x1E
 #define CONSONANT_ONE_THICK 5
 #define CONSONANT_ONE_MASK 0x1F
 #define SHORT_SORT_MASK 0x7
