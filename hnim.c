@@ -1,3 +1,4 @@
 int main() {
-hcanhwactyehkahsactureturn 0x0;
+tyehkahsac();
+return 0x0;
 }

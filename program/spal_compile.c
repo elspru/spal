@@ -125,20 +125,20 @@ int main(int argc, char *argv[]) {
   uint16_t recipe_byte_magnitude =
       (uint16_t)(recipe_magnitude * TABLET_LONG * WORD_THICK);
   memset(recipe, 0, (size_t)(recipe_byte_magnitude));
-  printf(" te1 \n");
+  // printf(" te1 \n");
   // convert text to binary encoding
   assert(text_remainder == 0);
-  printf(" te2 \n");
+  // printf(" te2 \n");
   text_encoding(recipe_text_magnitude, recipe_text, &recipe_magnitude, recipe,
                 &text_remainder);
-  printf(" yep recipe_magnitude 0x%X \n", recipe_magnitude);
+  // printf(" yep recipe_magnitude 0x%X \n", recipe_magnitude);
   // convert binary to OpenCL source code
   // print binary
 
   uint16_t recipe_indexFinger = 0;
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
-    printf("\nrecipe[%X]", recipe_indexFinger);
+    printf("\n%s:%d\trecipe[%X]", __FILE__, __LINE__, recipe_indexFinger);
     for (tablet_indexFinger = 0; tablet_indexFinger < (TABLET_LONG);
          ++tablet_indexFinger) {
       if (tablet_indexFinger % 0x10 == 0)
@@ -149,11 +149,11 @@ int main(int argc, char *argv[]) {
   }
   printf("\n");
 
-  printf(" yep2 recipe_magnitude 0x%X \n", recipe_magnitude);
-  printf("recipe_magnitude 0x%X\n", recipe_magnitude);
+  // printf(" yep2 recipe_magnitude 0x%X \n", recipe_magnitude);
+  // printf("recipe_magnitude 0x%X\n", recipe_magnitude);
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
-    //printf("produce_text %s gross_text_long 0x%X\n", produce_text,
+    // printf("produce_text %s gross_text_long 0x%X\n", produce_text,
     //       gross_text_long);
     assert(gross_text_long < MAXIMUM_PRODUCE_TEXT_LONG);
     code_opencl_translate(1, &(recipe[recipe_indexFinger]), &produce_text_long,
@@ -162,8 +162,8 @@ int main(int argc, char *argv[]) {
     // text_file_addenda(produce_text_long, produce_text, gross_filename);
     gross_text_long += produce_text_long;
     produce_text_long = MAXIMUM_PRODUCE_TEXT_LONG - gross_text_long;
-    printf("recipe %X produce text '%s' produce_text_long %X\n",
-           recipe_indexFinger, produce_text, produce_text_long);
+    // printf("recipe %X produce text '%s' produce_text_long %X\n",
+    //      recipe_indexFinger, produce_text, produce_text_long);
   }
 
   printf("filename %X %s\n", filename_long, filename);
@@ -182,11 +182,11 @@ int main(int argc, char *argv[]) {
 
   // create file if not existing
   // append to file buffer
-  printf("text_long %X text '%s' filename_long %X filename '%s' file_sort %X "
-         "gross_filename %s\n",
-         produce_text_long, produce_text, filename_long, filename, file_sort,
-         gross_filename);
-
+  printf("%s:%d\ttext_long:\t0x%X\n\ttext:\t`%s'\n\t"
+         "filename_long:\t0x%X\n\tfilename:\t`%s'\n\tfile_sort:\t%X\n\t"
+         "gross_filename:\t`%s'\n",
+         __FILE__, __LINE__, produce_text_long, produce_text, filename_long,
+         filename, file_sort, gross_filename);
   derive_filename(filename_long, filename, file_sort, &gross_filename_long,
                   gross_filename);
   text_file_addenda(gross_text_long, produce_text, gross_filename);
