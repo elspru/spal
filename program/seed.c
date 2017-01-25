@@ -1736,7 +1736,8 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
   //
   for (tablet_number = 0; tablet_number < tablet_magnitude; ++tablet_number) {
     quote_sort = 0;
-    for (tablet_indexFinger = 1; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
+    for (tablet_indexFinger = 1; tablet_indexFinger < TABLET_LONG;
+         ++tablet_indexFinger) {
       // if previous is indicated then quiz if is quote
       if (((indicator_list >> (tablet_indexFinger - 1)) & 1) == indicator &&
           (v16us_read(tablet_indexFinger, tablet[0]) &
@@ -1760,13 +1761,12 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
         // printf("case detected q %016lX\n",
         // sort_array[sort_array_indexFinger]);
         word = v16us_read(tablet_indexFinger, tablet[tablet_number]);
-        //printf("word %04X SAI%X\n", word, sort_array_indexFinger);
+        // printf("word %04X SAI%X\n", word, sort_array_indexFinger);
         switch (word) {
         case topic_case_GRAMMAR:
           verb_copy(tablet_indexFinger, tablet[tablet_number], &phrase);
           sort_array[sort_array_indexFinger] |= phrase;
-          printf("topic case set %016lX\n",
-           sort_array[sort_array_indexFinger]);
+          printf("topic case set %016lX\n", sort_array[sort_array_indexFinger]);
           ++sort_array_indexFinger;
           break;
         case return_GRAMMAR:
@@ -1775,7 +1775,7 @@ void sort_array_establish(const uint8_t tablet_magnitude, const v16us *tablet,
           sort_array[sort_array_indexFinger] = word;
           sort_array[sort_array_indexFinger] |= ((uint64_t)quote_sort)
                                                 << CODE_WORD_TIDBIT_LONG;
-          //printf("return detected %016lX\n",
+          // printf("return detected %016lX\n",
           //       sort_array[sort_array_indexFinger]);
           exit = TRUE;
           break;
@@ -2002,8 +2002,8 @@ void text_encoding(const uint16_t max_text_magnitude, const char *text,
       break;
     }
     text_indexFinger = (uint16_t)(max_text_magnitude - *text_remainder);
-    // printf("ct text_indexFinger %X, text %s\n", (uint)text_indexFinger,
-    //  text + text_indexFinger);
+    printf("ct text_indexFinger %X, text `%s', tablet_magnitude 0x%X\n",
+           (uint)text_indexFinger, text + text_indexFinger, *tablet_magnitude);
     // printf("ct text_remainder %X\n",(uint)*text_remainder);
     // printf("ct tablet_magnitude %X\n",(uint)*tablet_magnitude);
   }
@@ -2045,6 +2045,7 @@ grammaticalCase_code_word_translate(const uint16_t grammaticalCase_code) {
 
 void phrase_situate(const v16us tablet, const uint16_t phrase_code,
                     uint8_t *phrase_place, uint8_t *phrase_long) {
+  // phrase_place is begining of phrase, 
   assert(tablet.s0 != 0);
   assert(phrase_place != NULL);
   assert(phrase_long != NULL);
@@ -2291,15 +2292,10 @@ void tablet_translate(const v16us tablet, uint16_t *text_long, char *text) {
   }
   *text_long = gross_text_long;
 }
-
-void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
-                        char *produce_text, uint16_t *produce_filename_long,
-                        char *filename, uint16_t *file_sort) {
-  assert(produce_text != NULL);
-  assert(produce_text_long != NULL);
+void filename_establish(const v16us recipe, uint16_t *produce_filename_long,
+                        char *filename) {
   assert(filename != NULL);
   assert(produce_filename_long != NULL);
-  assert(file_sort != NULL);
   uint8_t phrase_place = 0;
   uint8_t phrase_long = 0;
   uint16_t indexFinger = 0;
@@ -2307,10 +2303,6 @@ void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
   uint16_t filename_accumulation_long = 0;
   const uint16_t maximum_filename_long = *produce_filename_long;
   uint16_t filename_long = maximum_filename_long;
-  const char *recipe_text = "int main() {";
-  const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
-  memcpy(produce_text, recipe_text, recipe_text_magnitude);
-  *produce_text_long = recipe_text_magnitude;
   phrase_situate(recipe, nominative_case_GRAMMAR, &phrase_place, &phrase_long);
   // word_code = v16us_read((uint8_t)(phrase_place + indexFinger), recipe);
   // printf("phrase_place %X phrase_long %X\n", phrase_place, phrase_long);
@@ -2323,6 +2315,19 @@ void cardinal_translate(const v16us recipe, uint16_t *produce_text_long,
     filename_long = maximum_filename_long - filename_accumulation_long;
   }
   *produce_filename_long = filename_accumulation_long;
+}
+
+void cardinal_translate(uint16_t *produce_text_long, char *produce_text,
+                        uint16_t *file_sort) {
+  assert(produce_text != NULL);
+  assert(produce_text_long != NULL);
+  assert(file_sort != NULL);
+  const char *recipe_text = "int main() {\n";
+  const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
+  //printf("%s:%d recipe_text_magnitude 0x%X\n", __FUNCTION__, __LINE__,
+  //       recipe_text_magnitude);
+  memcpy(produce_text, recipe_text, recipe_text_magnitude);
+  *produce_text_long = recipe_text_magnitude;
   *file_sort = cardinal_WORD;
 }
 
@@ -2331,10 +2336,33 @@ void return_translate(const v16us recipe, uint16_t *produce_text_long,
   assert(produce_text != NULL);
   assert(produce_text[0] == (char)0); // must be clean
   // get number quote from recipe
-  const uint8_t number_place = 3;
-  const int return_number = (int)v16us_read(number_place, recipe);
-  sprintf(produce_text, "return 0x%X;", return_number);
+  uint8_t phrase_place = 0xF;
+  uint8_t phrase_long = 0;
+  phrase_situate(recipe, return_GRAMMAR, &phrase_place, &phrase_long);
+  uint8_t number_place = phrase_place + phrase_long -2;
+  const int return_number = (int)v16us_read(number_place , recipe);
+  sprintf(produce_text, "return 0x%X;\n", return_number);
   *produce_text_long = (uint16_t)strlen(produce_text);
+}
+
+
+void sort_array_tablet_translate(uint16_t sort_array_long, 
+  uint64_t * sort_array, v16us *sort_tablet) {
+  assert(sort_tablet != NULL);
+  assert(sort_array_long >= 0);
+  assert(sort_array != NULL);
+  uint16_t indexFinger  = 0;
+  uint16_t sort_indexFinger  = 0;
+  uint8_t tablet_indexFinger = 0;
+  uint16_t code_word = 0;
+  for (; indexFinger < sort_array_long; ++indexFinger) {
+     for (sort_indexFinger = 3; sort_indexFinger < 4; --sort_indexFinger) {
+      code_word = (uint16_t) (sort_array[indexFinger] >> (sort_indexFinger * 16)) ;
+      if (code_word > 0) {
+        v16us_write(tablet_indexFinger, code_word, sort_tablet);
+      }
+     }
+  }
 }
 
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
@@ -2345,14 +2373,12 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   assert(recipe != NULL);
   assert(filename != NULL);
   assert(text != NULL);
+  assert(*text == (char)0);
   assert(filename_long != NULL);
   assert(file_sort != NULL);
   uint64_t code_number = 0;
   code_name_derive((uint8_t)recipe_magnitude, recipe, &code_number);
-  printf("code_number %016lX \n ", (uint64_t)code_number);
-  uint16_t word_code = 0;
-  uint8_t phrase_place = 0;
-  uint8_t phrase_long = 0;
+  printf("code_number 0x%016lX \n ", (uint64_t)code_number);
 
   // if it ends in _deo or "ta", then translate to ceremony subpoena.
   const uint16_t indicator_list = (uint16_t)recipe[0].s0;
@@ -2370,44 +2396,47 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   if (perspective == deontic_mood_GRAMMAR) {
     // printf("ASDFASDAF create subpoena\n");
     uint8_t sort_array_long = 16;
-    uint8_t tablet_indexFinger = 0;
+    //uint8_t tablet_indexFinger = 0;
     uint64_t sort_array[16] = {0};
-    uint16_t word_long = 5;
-    char word[5] = {0};
+    //uint16_t word_long = 5;
+    //v16us sort_tablet = {0};
+    //char word[5] = {0};
     sort_array_establish(1, recipe, &sort_array_long, sort_array);
-    for (tablet_indexFinger = 0; tablet_indexFinger < sort_array_long * 2;
-         ++tablet_indexFinger) {
-      word_code_translation(
-          (uint16_t)(((uint16_t *)(&sort_array))[tablet_indexFinger]),
-          &word_long, word);
-      // printf("B %s ", word);
-      word_long = 5;
-    }
+   // sort_array_tablet_translate(sort_array_long, sort_array, &sort_tablet);
+    //for (tablet_indexFinger = 0; tablet_indexFinger < sort_array_long * 2;
+    //     ++tablet_indexFinger) {
+    //  word_code_translation(
+    //      (uint16_t)(((uint16_t *)(&sort_array))[tablet_indexFinger]),
+    //      &word_long, word);
+    //  // printf("B %s ", word);
+    //  word_long = 5;
+    //}
     tablet_translate(recipe[0], produce_text_long, text);
     return;
   }
-  printf("perspective %X", perspective);
+  printf("%s,%d perspective %X\n", __FUNCTION__, __LINE__, perspective);
 
   // else see if it is one of the special ones.
   switch (code_number) {
   // case 0x580100010000l:
-  case 0xB2DE4B4DB3E433C9: // name topic, name nominative, begin, realis_mood
-    // probe topic
-    // if cardinal  declare main
-    phrase_situate(*recipe, topic_case_GRAMMAR, &phrase_place, &phrase_long);
-    word_code = v16us_read((uint8_t)(phrase_place), *recipe);
-    if (word_code == program_WORD) {
-      cardinal_translate(*recipe, produce_text_long, text, filename_long,
-                         filename, file_sort);
-    }
+  case 0xE04AAF3C9A5A98C3: // program topic, name nominative, begin, realis_mood
+                           // filename set
+    filename_establish(*recipe, filename_long, filename);
+    *produce_text_long = 0;
+    // set filename
+    *produce_text_long = 0;
     break;
-  case 0x037AFB9DDE03DADB: // number return
+  case 0x7294AEA30ABA6EEC: // cardinal topic, realis_mood
+    cardinal_translate(produce_text_long, text, file_sort);
+    break;
+  case 0x402F8F29CB437B59: // number return
     // printf("text %X ", (uint) text[0]);
     return_translate(*recipe, produce_text_long, text);
     break;
-  case 0xA4AC52AD14E8AD38: // finally close curly braces
-    *produce_text_long = 1;
+  case 0x19E250D690EC455B: // finally close curly braces
     text[0] = '}';
+    text[1] = '\n';
+    *produce_text_long = 2;
     break;
   default:
     *produce_text_long = 0;
@@ -2419,7 +2448,7 @@ void derive_filename(const uint16_t filename_long, const char *filename,
                      char *gross_filename) {
   assert(gross_filename_long != NULL);
   assert(gross_filename != NULL);
-  assert(*gross_filename_long > filename_long);
+  assert(*gross_filename_long >= filename_long);
   memcpy(gross_filename, filename, filename_long);
   switch (file_sort) {
   case cardinal_WORD:
@@ -2428,4 +2457,5 @@ void derive_filename(const uint16_t filename_long, const char *filename,
   default:
     break;
   }
+  *gross_filename_long = (uint16_t) strlen(gross_filename);
 }

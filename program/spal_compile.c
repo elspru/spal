@@ -91,16 +91,27 @@ int main(int argc, char *argv[]) {
     printf("no input filename\n");
     return 0;
   } // else if (argc < 3) {
-  //  printf("no produce filename\n");
-  //}
-  // Generic Algorithm:
-  // load text from file
-  // convert text to binary encoding
-  // convert binary to OpenCL source code
+//  printf("no produce filename\n");
+//}
+// Generic Algorithm:
+// load text from file
+// convert text to binary encoding
+// convert binary to OpenCL source code
 
-  char filename[64] = "";
+#define MAXIMUM_PRODUCE_TEXT_LONG 0x1000
+  uint16_t produce_text_long = MAXIMUM_PRODUCE_TEXT_LONG;
+  char produce_text[MAXIMUM_PRODUCE_TEXT_LONG] = "";
+  memset(produce_text, 0, MAXIMUM_PRODUCE_TEXT_LONG);
+#define MAXIMUM_FILENAME_LONG 0x40
+  const uint16_t maximum_filename_long = 0x40;
+  uint16_t filename_long = maximum_filename_long;
+  char filename[MAXIMUM_FILENAME_LONG] = "";
+  uint16_t gross_filename_long = maximum_filename_long;
+  char gross_filename[MAXIMUM_FILENAME_LONG] = "";
+  uint16_t file_sort = 0;
+  uint16_t gross_text_long = 0;
   const char *input_filename = argv[1];
-  char recipe_text[MAXIMUM_PAPER_LONG] = {0};
+  char recipe_text[MAXIMUM_PAPER_LONG] = "";
   uint16_t recipe_text_magnitude = MAXIMUM_PAPER_LONG;
   // load text from file
   // const char *recipe_text =
@@ -120,7 +131,7 @@ int main(int argc, char *argv[]) {
   printf(" te2 \n");
   text_encoding(recipe_text_magnitude, recipe_text, &recipe_magnitude, recipe,
                 &text_remainder);
-  printf(" yep \n");
+  printf(" yep recipe_magnitude 0x%X \n", recipe_magnitude);
   // convert binary to OpenCL source code
   // print binary
 
@@ -138,32 +149,27 @@ int main(int argc, char *argv[]) {
   }
   printf("\n");
 
-  // uint64_t code_name = 0;
-  // code_name_derive((uint8_t)recipe_magnitude, recipe, &code_name);
-  // printf("code_name 64bit %016lX\n", code_name);
-  const uint16_t max_produce_text_long = 256;
-  uint16_t produce_text_long = max_produce_text_long;
-  char produce_text[256] = "";
-  memset(produce_text, 0, max_produce_text_long);
-  uint16_t filename_long = 64;
-  uint16_t gross_filename_long = 64;
-  char gross_filename[64] = "";
-  uint16_t file_sort = 0;
-  uint16_t gross_text_long = 0;
+  printf(" yep2 recipe_magnitude 0x%X \n", recipe_magnitude);
+  printf("recipe_magnitude 0x%X\n", recipe_magnitude);
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
-    code_opencl_translate(1, &(recipe[recipe_indexFinger]),
-                          &produce_text_long, produce_text + gross_text_long,
-                          &filename_long, filename, &file_sort);
+    //printf("produce_text %s gross_text_long 0x%X\n", produce_text,
+    //       gross_text_long);
+    assert(gross_text_long < MAXIMUM_PRODUCE_TEXT_LONG);
+    code_opencl_translate(1, &(recipe[recipe_indexFinger]), &produce_text_long,
+                          produce_text + gross_text_long, &filename_long,
+                          filename, &file_sort);
     // text_file_addenda(produce_text_long, produce_text, gross_filename);
     gross_text_long += produce_text_long;
-    produce_text_long = max_produce_text_long - gross_text_long;
+    produce_text_long = MAXIMUM_PRODUCE_TEXT_LONG - gross_text_long;
     printf("recipe %X produce text '%s' produce_text_long %X\n",
            recipe_indexFinger, produce_text, produce_text_long);
   }
 
+  printf("filename %X %s\n", filename_long, filename);
   derive_filename(filename_long, filename, file_sort, &produce_text_long,
                   gross_filename);
+  printf("gross_filename %X %s\n", gross_filename_long, gross_filename);
   //  code_opencl_translate(recipe_magnitude, &(recipe[1]), &produce_text_long,
   //                        produce_text + gross_text_long, &filename_long,
   //                        filename, &file_sort);
