@@ -240,6 +240,7 @@ int main(int argc, char *argv[]) {
   const char *finally_text = "#endif\n";
   const uint16_t finally_text_long = (uint16_t)strlen(finally_text);
   remove(produce_filename);
+
   paper_addenda(produce_filename, introductory_text_long, introductory_text);
   for (paper_indexFinger = 0;
        paper_indexFinger < MAXIMUM_PAPER_MAGNITUDE && paper_long != 0;
@@ -283,6 +284,14 @@ int main(int argc, char *argv[]) {
   // for each line generate code for pyash_word, and put foreign_word in 30byte
   // area after it.
   // append to file after each system page of output
+  //for (paper_indexFinger = 0;
+  //     paper_indexFinger < MAXIMUM_PAPER_MAGNITUDE && paper_long != 0;
+  //     ++paper_indexFinger) {
+  //paper_addenda(produce_filename, finally_text_long, finally_text);
+  //}
+    
+
+
   //
   // define file:
   // for each line generate code for pyash_word, and make corresponding line of

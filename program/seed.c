@@ -1020,15 +1020,15 @@ extern void convert_last_number_to_quote(uint8_t *terminator_indexFinger,
   // printf("number %X, tablet_indexFinger %X, number_indexFinger %X\n",
   // (uint)number,
   //       (uint)tablet_indexFinger, (uint)number_indexFinger);
-  //printf("number %lX\n", number);
+  // printf("number %lX\n", number);
   if (number <= 0xFFFF) {
-    //printf("RPI %X\n", retrospective_phrase_indexFinger);
+    // printf("RPI %X\n", retrospective_phrase_indexFinger);
     v16us_write(retrospective_phrase_indexFinger,
                 (uint16_t)(SHORT_NUMBER_QUOTED), tablet);
     ++retrospective_phrase_indexFinger;
     v16us_write(retrospective_phrase_indexFinger, (uint16_t)(number), tablet);
     *terminator_indexFinger = (uint8_t)(retrospective_phrase_indexFinger);
-    //printf("RPI %X\n", retrospective_phrase_indexFinger);
+    // printf("RPI %X\n", retrospective_phrase_indexFinger);
   }
   assert(number_indexFinger <= 2);
 }
@@ -2456,12 +2456,15 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     //}
     tablet_translate(sort_tablet, produce_text_long, text);
     text[*produce_text_long] = '(';
+    ++*produce_text_long;
     // translate input arguments
     printf("%s:%d TODO translate input arguments\n", __FILE__, __LINE__);
-    text[*produce_text_long + 1] = ')';
-    text[*produce_text_long + 2] = ';';
-    text[*produce_text_long + 3] = '\n';
-    *produce_text_long += 4;
+    text[*produce_text_long] = ')';
+    ++*produce_text_long;
+    text[*produce_text_long] = ';';
+    ++*produce_text_long;
+    text[*produce_text_long] = '\n';
+    ++*produce_text_long;
     return;
   }
   // printf("%s,%d perspective %X\n", __FILE__, __LINE__, perspective);
@@ -2476,7 +2479,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     // set filename
     *produce_text_long = 0;
     break;
-  case 0x3749EC5E360FFBFE: // cardinal topic, realis_mood
+  case 0x1F9B5ED0A6B6D16C: // cardinal topic, realis_mood
     cardinal_translate(produce_text_long, text, file_sort);
     break;
   case 0x402F8F29CB437B59: // number return

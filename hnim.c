@@ -1,4 +1,4 @@
 int main() {
-tyehkahsac();
+wutyehkahsac();
 return 0x0;
 }

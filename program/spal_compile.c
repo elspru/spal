@@ -31,30 +31,17 @@ contact: streondj at gmail dot com
 
 #define VALGRIND
 #define NEWSPAPER_LONG 0x10
-uint8_t newspaper_indexFinger = 0;
-const uint16_t newspaper_byte_magnitude = NEWSPAPER_LONG * TABLET_BYTE_LONG;
 // v16us newspaper[NEWSPAPER_LONG] = {0};
-
-void text_file_addenda(const int text_long, const char *text,
-                       const char *filename) {
-  FILE *out = fopen(filename, "a");
-  assert(out != NULL);
-  int written_text_long = fprintf(out, "%s", text);
-  printf("text_long %X \n", text_long);
-  printf("written_text_long %X \n", written_text_long);
-  assert(written_text_long >= text_long);
-  int result = fclose(out);
-  assert(result == 0);
-}
 
 void newspaper_print(const uint16_t newspaper_indexFinger,
                      const v16us *newspaper) {
   uint16_t indexFinger = 0;
   char text[TABLET_LONG * WORD_LONG] = "";
   uint16_t text_long = TABLET_LONG * WORD_LONG;
-  printf("newspaper %X\n", newspaper_indexFinger);
+  printf("%s:%d:\tnewspaper %X\n\t", __FILE__, __LINE__, newspaper_indexFinger);
   for (; indexFinger < newspaper_indexFinger; ++indexFinger) {
-    printf("%X %X %X %X  %X %X %X %X  %X %X %X %X  %X %X %X %X\n",
+    printf("%04X %04X %04X %04X  %04X %04X %04X %04X  %04X %04X %04X %04X  "
+           "%04X %04X %04X %04X\n",
            newspaper[indexFinger].s0, newspaper[indexFinger].s1,
            newspaper[indexFinger].s2, newspaper[indexFinger].s3,
            newspaper[indexFinger].s4, newspaper[indexFinger].s5,
@@ -64,7 +51,8 @@ void newspaper_print(const uint16_t newspaper_indexFinger,
            newspaper[indexFinger].sC, newspaper[indexFinger].sD,
            newspaper[indexFinger].sE, newspaper[indexFinger].sF);
     tablet_translate(newspaper[indexFinger], &text_long, text);
-    printf("tablet %s\n", text);
+    printf("\t%s\n", text);
+    printf("\tTODO translate to local locale\n");
   }
 }
 
@@ -77,7 +65,7 @@ void probe() {
   const char short_grammar_word[] = "li";
   const uint8_t short_grammar_word_long = (uint8_t)strlen(short_grammar_word);
   word_number_encode(short_grammar_word_long, short_grammar_word, &word_number);
-  printf("word_number %X\n", word_number);
+  // printf("word_number %X\n", word_number);
   agree(word_number == 0x17E, "ksashfakhlishsiphwapli", &newspaper_indexFinger,
         newspaper);
   // probe long grammar
@@ -87,6 +75,10 @@ void probe() {
 }
 
 int main(int argc, char *argv[]) {
+  char language_code[16] = {0};
+  uint8_t language_code_long = 16;
+  region_language_identity(&language_code_long, &language_code);
+  printf("%s:%d\tLC_CTYPE: %s %d\n", __FILE__, __LINE__, language_code, language_code_long);
   if (argc < 2) {
     printf("no input filename\n");
     return 0;
@@ -119,6 +111,7 @@ int main(int argc, char *argv[]) {
   // const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 5;
   paper_read(input_filename, 0, &recipe_text_magnitude, recipe_text);
+  printf("%s:%d\tinput file:\n%s", __FILE__,__LINE__, recipe_text);
   v16us recipe[8] = {0};
   uint16_t text_remainder = 0;
   uint8_t tablet_indexFinger = 0;
