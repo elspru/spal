@@ -319,6 +319,82 @@ inline void derive_first_word(const uint8_t ACC_GEN_magnitude,
   }
 }
 
+#define first_word_derive_exit                                                 \
+  *word_long = (uint8_t)0;                                                     \
+  return;
+
+void first_word_derive(const uint16_t text_long, const char *ACC_text,
+                       uint8_t *word_long, uint16_t *word_begin) {
+  uint8_t start = 0;
+  assert(ACC_text != NULL);
+  assert(text_long > 1);
+  assert(word_begin != NULL);
+  /* algorithm:
+      if glyph zero ESS vowel
+      then if glyph two not ESS consonant
+          then answer ACC DEP wrong ACC glyph LOC two
+          else restart ABL glyph two
+      if glyph zero ESS consonant
+      then
+          if glyph one ESS consonant CNJ glyph two ESS vowel
+              CNJ glyph three ESS consonant
+          then copy ACC text ABL glyph zero ALLA glyph
+                  four DAT word
+              CNJ copy ACC number four DAT size
+              answer
+          else if glyph one ESS vowel
+          then copy ACC text ABL glyph zero ALLA glyph two
+              DAT word CNJ
+              copy ACC number two DAT size
+  */
+  assert(vowel_Q(ACC_text[start + 0]) == TRUE ||
+         consonant_Q(ACC_text[start + 0]) == TRUE);
+  if (vowel_Q(ACC_text[start]) == TRUE) {
+    if (consonant_Q(ACC_text[start + 1]) == FALSE ||
+        consonant_Q(ACC_text[start + 2]) == FALSE) {
+      first_word_derive_exit;
+    }
+    assert(consonant_Q(ACC_text[start + 1]) == TRUE);
+    assert(consonant_Q(ACC_text[start + 2]) == TRUE);
+    start = 2;
+  }
+  if (consonant_Q(ACC_text[start]) == TRUE) {
+    if (consonant_Q(ACC_text[start + 1]) == TRUE) {
+      if (vowel_Q(ACC_text[start + 2]) == FALSE) {
+        first_word_derive_exit;
+      }
+      assert(vowel_Q(ACC_text[start + 2]) == TRUE);
+      if (tone_Q(ACC_text[start + 3]) == TRUE) {
+        if (consonant_Q(ACC_text[start + 4]) == FALSE) {
+          first_word_derive_exit;
+        }
+        assert(consonant_Q(ACC_text[start + 4]) == TRUE);
+        *word_begin = start;
+        *word_long = (uint8_t)5;
+        return;
+      } else {
+        if (consonant_Q(ACC_text[start + 3]) == FALSE) {
+          first_word_derive_exit;
+        }
+        assert(consonant_Q(ACC_text[start + 3]) == TRUE);
+        *word_begin = start;
+        *word_long = (uint8_t)4;
+      }
+    } else if (vowel_Q(ACC_text[start + 1]) == TRUE) {
+      if (tone_Q(ACC_text[start + 2]) == TRUE) {
+        *word_begin = start;
+        *word_long = (uint8_t)3;
+      } else {
+        *word_begin = start;
+        *word_long = (uint8_t)2;
+      }
+    }
+  }
+  if (text_long < *word_long) {
+    *word_long = 0;
+  }
+}
+
 extern inline void code_ACC_consonant_one(const uint8_t type,
                                           const uint8_t consonant_one,
                                           uint16_t *number) {
@@ -814,7 +890,7 @@ extern inline void detect_ACC_quote_magnitude(const uint8_t text_magnitude,
   for (text_indexFinger = 1; text_indexFinger < text_magnitude;
        ++text_indexFinger) {
     ++class_magnitude;
-    if (text[text_indexFinger] == '.') {
+    if (text[text_indexFinger] == SILENCE_GLYPH) {
       break;
     }
   }
@@ -1100,6 +1176,21 @@ uint16_t v16us_read(const uint8_t indexFinger, const v16us vector) {
   }
 }
 
+#define independentClause_encoding_mood                                        \
+  v16us_write(tablet_indexFinger, number, tablet);                             \
+  binary_phrase_list =                                                         \
+      (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));              \
+  current = 2;                                                                 \
+  ++tablet_indexFinger;                                                        \
+  break;
+
+#define independentClause_encoding_case                                        \
+  binary_phrase_list =                                                         \
+      (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));              \
+  v16us_write(tablet_indexFinger, number, tablet);                             \
+  ++tablet_indexFinger;                                                        \
+  break;
+
 void independentClause_encoding(const uint16_t text_magnitude, const char *text,
                                 uint8_t *tablet_magnitude, v16us *tablet,
                                 uint16_t *text_remainder) {
@@ -1127,6 +1218,9 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
   uint8_t quote_magnitude = 0;
   uint8_t quote_tablet_magnitude = 0;
   uint8_t current = 0x0;
+  uint8_t word_long = 0;
+  uint16_t word_begin = 0;
+  uint16_t quote_sort_code = 0;
   memset(word, 0, WORD_LONG);
   memset(derived_word, 0, WORD_LONG);
   assert(text != NULL);
@@ -1180,17 +1274,40 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
               ++tablet_indexFinger;
               break;
             }
+          case text_GRAMMAR:
+            printf("%s:%d\t TODO text grammar quote \n", __FILE__, __LINE__);
+            //
+            break;
+          case word_GRAMMAR:
+            printf("%s:%d\t TODO word grammar quote \n", __FILE__, __LINE__);
+            //  find next word grammar
+            // encode text between
+            // create applicable type
+            // adjust applicable indexFingers
+            break;
           case quoted_GRAMMAR:
             // printf("detected quote word %X\n", (uint)text_indexFinger);
             ++text_indexFinger;
             detect_ACC_quote_magnitude(
                 (uint8_t)(text_magnitude - text_indexFinger),
                 text + text_indexFinger, &quote_magnitude, &quote_indexFinger);
-            // printf("detected quote size %X\n", (uint) quote_magnitude);
+            printf("detected quote size %X\n", (uint)quote_magnitude);
             // printf("quote_indexFinger %X\n", (uint) quote_indexFinger -
             // text_indexFinger);
             // printf("quote %s\n", text + text_indexFinger +
             // SILENCE_GLYPH_LONG);
+
+            // encode the quote sort word, then switch case it
+            //  find quote sort word
+            printf("%s:%d\tletter %c\n", __FILE__, __LINE__,
+                   text[text_indexFinger]);
+            text_indexFinger += SILENCE_GLYPH_LONG;
+            first_word_derive(WORD_LONG, text + text_indexFinger, &word_long,
+                              &word_begin);
+            printf("%s:%d\tletter %c word_long 0x%X\n", __FILE__, __LINE__,
+                   text[text_indexFinger + word_begin], word_long);
+            word_number_encode(word_long, text + text_indexFinger + word_begin,
+                               &quote_sort_code);
             derive_quote_code(
                 (uint8_t)(quote_indexFinger - SILENCE_GLYPH_LONG),
                 text + text_indexFinger + SILENCE_GLYPH_LONG, quote_magnitude,
@@ -1221,52 +1338,19 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
             //    printf("ls %X\n", (uint)
             //        tablet_indexFinger);
             break;
-          // case NAME_GRAMMAR_WORD:
-          // find start of name // a glottal stop? or a grammar word
-          /// for i < current ; --
-          ///   if grammar_word__int(words[i]){ start = i+1; break;}
-          /// {OD + 1 >> 6, name_word, name_word, name_word, name_word}
-          // copy up to 4 words  of it
-          // fill extra with blanks
-          //
-          // break;
 
           case nominative_case_GRAMMAR:
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case accusative_case_GRAMMAR:
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case instrumental_case_GRAMMAR:
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case topic_case_GRAMMAR:
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case dative_case_GRAMMAR:
-            binary_phrase_list ^=
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case vocative_case_GRAMMAR:
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            v16us_write(tablet_indexFinger, number, tablet);
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_case;
           case conditional_mood_GRAMMAR:
             v16us_write(tablet_indexFinger, number, tablet);
             binary_phrase_list =
@@ -1274,33 +1358,13 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
             ++tablet_indexFinger;
             break;
           case deontic_mood_GRAMMAR:
-            v16us_write(tablet_indexFinger, number, tablet);
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            current = 2;
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_mood;
           case realis_mood_GRAMMAR:
-            v16us_write(tablet_indexFinger, number, tablet);
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            current = 2;
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_mood;
           case return_GRAMMAR:
-            v16us_write(tablet_indexFinger, number, tablet);
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            current = 2;
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_mood;
           case finally_GRAMMAR:
-            v16us_write(tablet_indexFinger, number, tablet);
-            binary_phrase_list =
-                (uint16_t)(binary_phrase_list ^ (1 << tablet_indexFinger));
-            current = 2;
-            ++tablet_indexFinger;
-            break;
+            independentClause_encoding_mood;
           default:
             v16us_write(tablet_indexFinger, number, tablet);
             ++tablet_indexFinger;
@@ -2355,6 +2419,17 @@ void filename_establish(const v16us recipe, uint16_t *produce_filename_long,
   }
   *produce_filename_long = filename_accumulation_long;
 }
+void language_include_establish(uint16_t *produce_text_long,
+                                char *produce_text) {
+  assert(produce_text != NULL);
+  assert(produce_text_long != NULL);
+  const char *recipe_text = "#include \"pyac.h\"\n";
+  const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
+  // printf("%s:%d recipe_text_magnitude 0x%X\n", __FILE__, __LINE__,
+  //       recipe_text_magnitude);
+  memcpy(produce_text, recipe_text, recipe_text_magnitude);
+  *produce_text_long = recipe_text_magnitude;
+}
 
 void cardinal_translate(uint16_t *produce_text_long, char *produce_text,
                         uint16_t *file_sort) {
@@ -2458,7 +2533,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     text[*produce_text_long] = '(';
     ++*produce_text_long;
     // translate input arguments
-    printf("%s:%d TODO translate input arguments\n", __FILE__, __LINE__);
+    printf("%s:%d TODO include input arguments\n", __FILE__, __LINE__);
     text[*produce_text_long] = ')';
     ++*produce_text_long;
     text[*produce_text_long] = ';';
@@ -2474,10 +2549,10 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   // case 0x580100010000l:
   case 0x1D3857101B7A662E: // program topic, name nominative, begin, realis_mood
                            // filename set
-    filename_establish(*recipe, filename_long, filename);
-    *produce_text_long = 0;
     // set filename
-    *produce_text_long = 0;
+    filename_establish(*recipe, filename_long, filename);
+    // set #include "pyac.h"
+    language_include_establish(produce_text_long, text);
     break;
   case 0x1F9B5ED0A6B6D16C: // cardinal topic, realis_mood
     cardinal_translate(produce_text_long, text, file_sort);

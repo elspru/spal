@@ -20,9 +20,11 @@ contact: streondj at gmail dot com
 #include <CL/cl.h>
 #include <CL/cl_platform.h>
 #include <assert.h>
+#include <libintl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define _(String) gettext(String)
 
 #include "agree.h"
 #include "dialogue.h"
@@ -78,7 +80,8 @@ int main(int argc, char *argv[]) {
   char language_code[16] = {0};
   uint8_t language_code_long = 16;
   region_language_identity(&language_code_long, &language_code);
-  printf("%s:%d\tLC_CTYPE: %s %d\n", __FILE__, __LINE__, language_code, language_code_long);
+  printf("%s:%d\tLC_CTYPE: %s %d\n", __FILE__, __LINE__, language_code,
+         language_code_long);
   if (argc < 2) {
     printf("no input filename\n");
     return 0;
@@ -111,7 +114,7 @@ int main(int argc, char *argv[]) {
   // const uint16_t recipe_text_magnitude = (uint16_t)strlen(recipe_text);
   uint16_t recipe_magnitude = 5;
   paper_read(input_filename, 0, &recipe_text_magnitude, recipe_text);
-  printf("%s:%d\tinput file:\n%s", __FILE__,__LINE__, recipe_text);
+  printf("%s:%d\tinput file:\n%s", __FILE__, __LINE__, recipe_text);
   v16us recipe[8] = {0};
   uint16_t text_remainder = 0;
   uint8_t tablet_indexFinger = 0;
@@ -183,6 +186,8 @@ int main(int argc, char *argv[]) {
   derive_filename(filename_long, filename, file_sort, &gross_filename_long,
                   gross_filename);
   text_file_addenda(gross_text_long, produce_text, gross_filename);
+  printf("TODO break up seed.c into multiple files, encoding, decoding,"
+         " compiling\n");
   probe();
   return 0;
 }
