@@ -1,0 +1,34 @@
+\chapter{Machine Programmer}
+
+\section{Overview}
+A human programmer writes a function template, function suggestions and 
+either provides a working function or sample input and output data. 
+
+An encoder encodes the function template and function suggestions into the
+intermediate representation (IR).  
+
+If the human programmer provides a working function, then the function profiler
+takes the function template IR and working function and generates the sample 
+input and output data. 
+
+A population generator takes the function suggestions IR and input from
+/dev/random to create the population IR.\@
+
+The population compiler converts the population IR into kernel or ``.cl'' files,
+one for each.
+
+The population tester loads each population kernel, and streams the sample
+inputs through them, checking outputs for correctness, and produces the
+population fitness which includes fitness of all individuals. 
+
+The champion selector takes the fitness ratings, and the population IR,
+and outputs the champions.
+
+The population mutator and recombiner takes the champions and function
+suggestions, then generates a new population IR.\@
+
+An output generator takes the champions and outputs the best ones to a file. 
+
+
+
+

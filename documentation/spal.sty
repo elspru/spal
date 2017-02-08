@@ -2,6 +2,7 @@
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[english]{babel}
 \RequirePackage[tone]{tipa}
+\RequirePackage{tikz}
 \RequirePackage{csquotes}
 \makeatletter
 \def\blx@shorthands{}
@@ -17,7 +18,7 @@
 \RequirePackage{multirow}
 \RequirePackage{longtable}
 \RequirePackage{booktabs}
-\RequirePackage[dvipsnames]{xcolor}
+%\RequirePackage[dvipsnames]{xcolor}
 \RequirePackage[
   type={CC},
   modifier={by-sa},
@@ -39,4 +40,27 @@
   breakatwhitespace=true,
   tabsize=2
 }
-\addbibresource{machine_programmer.bib}
+\addbibresource{spal.bib}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,automata,petri,positioning}
+
+\tikzset{place/.style={circle,
+        thick,
+        draw=blue!75,
+        fill=blue!20,
+        minimum size=6mm,
+    },
+    transitionH/.style={rectangle,
+        thick,
+        fill=black,
+        minimum width=8mm,
+        inner ysep=2pt
+    },
+    transitionV/.style={rectangle,
+        thick,
+        fill=black,
+        minimum height=8mm,
+        inner xsep=2pt
+    }
+}
+

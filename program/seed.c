@@ -1221,6 +1221,8 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
   uint8_t word_long = 0;
   uint16_t word_begin = 0;
   uint16_t quote_sort_code = 0;
+  uint16_t quote_sort = 0;
+  uint16_t scalar_thick = 0;
   memset(word, 0, WORD_LONG);
   memset(derived_word, 0, WORD_LONG);
   assert(text != NULL);
@@ -1308,6 +1310,28 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
                    text[text_indexFinger + word_begin], word_long);
             word_number_encode(word_long, text + text_indexFinger + word_begin,
                                &quote_sort_code);
+            printf("%s:%d\tquote_sort_code %X\n", __FILE__, __LINE__,
+                   quote_sort_code);
+            switch(quote_sort_code) {
+              case word_GRAMMAR:
+            printf("%s:%d\tword quote detected\n", __FILE__, __LINE__);
+                quote_word = QUOTE_DENOTE;
+                quote_sort = WORD_SORT_DENOTE;
+                quote_word |= quote_sort << SORT_DENOTE_BEGIN;
+                scalar_thick = SIXTEEN_TIDBIT_SCALAR_THICK;
+                quote_word |= scalar_thick << SCALAR_THICK_BEGIN;
+                // convert words into array, then into vector
+                // set length appropriately
+                // load encoded words
+                // leave the encoded place and text place properly
+                break;
+              case number_GRAMMAR:
+            printf("%s:%d\tnumber quote detected\n", __FILE__, __LINE__);
+                break;
+              case independent_clause_GRAMMAR:
+            printf("%s:%d\tsentence quote detected\n", __FILE__, __LINE__);
+                break;
+            }
             derive_quote_code(
                 (uint8_t)(quote_indexFinger - SILENCE_GLYPH_LONG),
                 text + text_indexFinger + SILENCE_GLYPH_LONG, quote_magnitude,

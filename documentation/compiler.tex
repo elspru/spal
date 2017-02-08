@@ -1,0 +1,136 @@
+\chapter{Operation Template}
+\section{overview}
+\subsection{translation}
+An English programmer writes English text. 
+
+An English encoder encodes the English text to the Pyash medium code. 
+
+A Chinese translator decodes the Pyash medium code into Chinese
+text.
+
+A Chinese programmer writes Chinese text. 
+
+A Chinese encoder encodes the Chinese text into the Pyash medium code. 
+
+\subsection{Compiler}
+A code compiler from the medium code, to a cardinal ``.c''
+file, library header file, and library ``.c'' files, as well as a kernel ``.cl''
+file, and library file of intermediate code.  
+
+Clang compiler takes main and library ``.c'' files, and library header files,
+and produces an byin binary.
+
+The byin binary operator sets up the constant stack, input data and makes
+writeable output data.
+
+The host code starts the virtual machine kernel, and library kernels. 
+
+
+\begin{figure}
+\begin{tikzpicture}[node distance=0.5cm and 1cm,>=stealth',bend angle=45,auto]
+    \node [transitionV,label=above:glisprom] (prom) {};
+    \node [place,label=above:glishrom] (hrom) [right= of prom] {}
+        edge[post]   (prom)
+        edge[pre]   (prom);
+    \node [transitionV,label=above:kfin] (kfin) [right= of hrom] {}
+        edge[pre]   (hrom);
+    \node [place,label=above:hkom] (hkom) [below right= of kfin] {}
+        edge[pre]   (kfin);
+    \node [transitionV,label=above:nyot] (nyot) [below left= of hkom] {}
+        edge[post]   (hrom)
+        edge[pre]   (hkom);
+    \node [place,label=above:tw6nhrom] (tw6nhrom) [left= of nyot] {}
+        edge[post]   (kfin)
+        edge[pre]   (nyot);
+    \node [transitionV,label=above:tw6nprom] (tw6nprom) [left= of tw6nhrom]{}
+        edge[post] (tw6nhrom)
+        edge[pre] (tw6nhrom);
+    \node [transitionV,label=above:kl6n] (kl6n) [right= of hkom]{}
+        edge[pre] (hkom);
+    \node [place,label=above left:pren] (pren) [below= of kl6n] {}
+        edge[pre]   (kl6n);
+    \node [place,label=above:mlep] (mlep) [right= of kl6n] {}
+        edge[pre]   (kl6n);
+    \node [place,label=above:krat] (krat) [above = of mlep] {}
+        edge[pre]   (kl6n);
+    \node [place,label=above:htek] (htek) [below= of mlep] {}
+        edge[pre]   (kl6n);
+    \node [transitionV,label=above:clang] (clang) [right= of mlep]{}
+        edge[pre] (mlep)
+        edge[pre] (krat)
+        edge[pre] (htek);
+    \node [place,label=right:byin] (byin) [below= of clang] {}
+        edge[pre]   (clang);
+    \node [transitionV,label=above:hvim] (hvim) [below= of htek]{}
+        edge[pre] (byin)
+        edge[pre,out=160,in=-90,looseness=1] (hkom)
+        edge[pre] (pren);
+    \node [place,label=left:prentsin] (tsin) [left= of hvim] {}
+        edge[pre] (hvim);
+    \node [transitionV,label=left:prennrek] (nrek) [below= of tsin]{}
+        edge[pre] (tsin);
+    \node [place,label=right:swutsric] (swut) [right= of hvim] {}
+        edge[pre] (hvim);
+    \node [transitionV,label=right:prenhvic] (hvic) [below= of swut]{}
+        edge[pre] (swut);
+    \node [place,label=below:psas] (psas) [below left= of hvic] {}
+        edge[pre] (hvic)
+        edge[pre] (hvim)
+        edge[pre] (nrek)
+        edge[post,in=-90,out=180,looseness=1]   (nyot);
+    \node [transitionV,label=above:frenhbuc] (hbuc) [below= of tw6nprom]{};
+    \node [place,label=above:nrup] (nrup) [right= of hbuc] {}
+        edge[post,looseness=1] (kfin)
+        edge[pre] (hbuc);
+    \node [place,label=below:frenhtet] (frenhtet) [below= of nrup] {}
+        edge[pre] (nyot)
+        edge[post] (hbuc);
+  %  \node [place,label=above:$D$] (d) [below= of hrom] {};
+  %  \node [transitionV,label=above:$W_n$] (wn) [right= of d] {}
+  %      edge[pre]   (htet)
+  %      edge[pre]   (d);
+  %  \node [place,tokens=1,label=above:$I$] (p2) [above right=of kfin] {}
+  %      edge[pre,out=-135,in=30,looseness=1,overlay]   (kfin)
+  %      edge[post,out=180,in=60,looseness=1,overlay]   (kfin);
+  %  \node [place,tokens=2,label=above:$P_3$] (p3) [below right=of kfin] {}
+  %      edge[pre]   (kfin);
+  %  \node [transitionV,label=above:$T_2$] (t2) [above right=of p3] {}
+  %      edge[pre]   (p2)
+  %      edge[pre]   (p3)
+  %      edge[post,out=-110,in=-50,looseness=2,overlay]  (htet);
+  %  \node [place,tokens=1, label=above:$P_4$] (p4) [above right=of t2] {}
+  %      edge[pre]   (t2);
+\end{tikzpicture}
+\caption{Memory Template}
+\label{memoryTemplate}
+\begin{tabular}{ll}
+  glisprom & English programmer \\
+  twynprom & Chinese programmer \\
+  glishrom & English program \\
+  tw6nhrom & Chinese program \\
+  frenhbuc & French user \\
+  frenhtet & French text \\
+  nrup & input \\
+  kfin & encoder \\
+  hkom & code \\
+  nyot & translator \\
+  kl6n & compiler \\
+  psas & produce or output \\
+  krat & cardinal file (main.c) \\
+  mlep & template file (lib.h) \\
+  htek & library file (lib.c) \\
+  pren & parallel file (kernels.cl) \\
+  hvim & runtime \\
+  prentsin & parallel knowledge (parallel data) \\
+  prennrek & parallel workers \\
+  swutsric & holy ceremonies \\
+  prenhvic & parallel virtual-machine \\
+  psas & produce  (output) \\
+  %C & Code in constant memory \\
+  %D & input Data in constant memory \\
+  %V & Variable index in global memory \\
+  %W & Worker \\
+  %I & Intermediate values processed in local memory\\
+  %P & Produced data in global memory \\
+\end{tabular}
+\end{figure}
