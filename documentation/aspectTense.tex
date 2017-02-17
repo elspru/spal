@@ -1,0 +1,144 @@
+\section{Tense}
+\label{tense}
+\begin{description}
+    \item[past-tense]
+    things that happened
+    \item[hesternal-tense]
+    yesterday
+    \item[recent-past-tense]
+    
+    \item[remote-past-tense]
+    
+    \item[present-tense]
+    now, things that are happening
+    \item[hodiernal-tense]
+    today
+    \item[future-tense]
+    things that will happen
+    \item[crastinal-tense]
+    tommorrow
+    \item[soon-future-tense]
+    
+    \item[remote-future-tense]
+    
+\end{description}
+\section{Aspects}
+\begin{multicols}{2}
+\begin{description}
+\item[atelic-aspect] a \\
+ cumulative-reference process 
+for SPEL it is like signal processing,
+at any point it is still processing, perhaps for parallel processes
+\item[cessative-aspect]
+for ending process \\
+for SPEL exiting process \\
+for hardware description language falling edge
+\item[completive-aspect]
+completely and thoroughly finished \\
+for SPEL finished with no errors
+\item[continuative-aspect]
+process started but not active\\
+for SPEL idle processes
+\item[delimitative-aspect]
+temporary process
+\item[frequentive-aspect]
+repetitive process\\
+for SPEL can be used for servers/daemons
+\item[gnomic-aspect]
+general truths\\
+for SPEL defining functions
+\item[habitual-aspect]
+habitual process \\
+for SPEL can be provided services or features
+\item[inchoative-aspect]
+begining of process \\
+for SPEL loading process \\
+for Hardware Description Layer signal rising edge
+\item[imperfective-aspect] 
+for SPEL a process which is ongoing \\
+any partial process
+\item[momentane-aspect]
+for things that happen suddenly or momentarily,
+like power surges and lightning bolts. For instance a clock-tick could be momentane and frequentive.
+
+\item[perfective-aspect]
+any whole process \\
+for SPEL a process which has completed
+
+\item[progressive-aspect]
+for active process\\
+for SPEL for active processes
+\item[prospective-aspect]
+for processes that happen after \\
+for SPEL queued processes
+\item[retrospective-aspect]
+for processes that happen before \\
+for SPEL prerequisite processes
+%<!--\item[semelfactive-aspect]
+%for something that happened once-->
+\item[telic-aspect]
+quantized process \\
+for processes where any of the parts are not the whole,
+only taken together is it the whole. \\
+for SPEL this is processes that require sequential components of
+a different kind.
+
+\end{description}
+\end{multicols}
+\begin{table}
+\caption{Aspect Tree}
+\begin{itemize}
+\item state
+\begin{itemize}
+    \item perfective-aspect
+        \begin{itemize}
+            \item momentane-aspect
+            \item completive-aspect
+            %<!--\item semelfactive-aspect-->
+        \end{itemize}
+    \item imperfective-aspect
+        \begin{itemize}
+            \item continuous-aspect
+            \item progressive-aspect
+            \item delimitative-aspect
+            %<!--\item frequentive-aspect-->
+        \end{itemize}
+    
+\end{itemize}
+
+\item occurence
+\begin{itemize}
+    \item gnomic-aspect
+    \item habitual-aspect
+\end{itemize}
+
+\item part of time
+\begin{itemize}
+    \item inchoative-aspect
+    \item cessative-aspect
+\end{itemize}
+
+\item relative time
+\begin{itemize}
+    \item retrospective-aspect
+    \item prospective-aspect
+\end{itemize}
+
+\end{itemize}
+<h3>Lexical</h3>
+\begin{itemize}
+\item composition
+    \begin{itemize}
+        \item atelic
+        \item telic
+        \item stative-verb
+    \end{itemize}
+
+\item causal
+     \begin{itemize}
+     \item autocausative-verb
+     \item anticausative-verb
+     \end{itemize}
+\end{itemize}
+\label{aspecttree}
+\end{table}

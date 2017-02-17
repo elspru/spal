@@ -9,7 +9,7 @@
 \makeatother
 \RequirePackage[backend=biber, hyperref]{biblatex}
 %\RequirePackage{minitoc}
-%\RequirePackage[margin=4cm]{geometry}
+\RequirePackage[left=2.5cm, right=3cm, top=3cm, bottom=3cm]{geometry}
 \RequirePackage{bytefield}
 \RequirePackage{listings}
 \RequirePackage{tabulary}
@@ -41,6 +41,12 @@
   tabsize=2
 }
 \addbibresource{spal.bib}
+\renewcommand{\familydefault}{\ttdefault}
+\usepackage{fontspec}
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
+\setmainfont{OCRB}
+\newfontfamily\uni{DejaVu Sans}
 \usepackage{tikz}
 \usetikzlibrary{arrows,shapes,automata,petri,positioning}
 

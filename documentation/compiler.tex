@@ -27,6 +27,8 @@ The host code starts the virtual machine kernel, and library kernels.
 
 
 \begin{figure}
+\caption{Compiler Petri Net}
+\label{compilerPetri}
 \begin{tikzpicture}[node distance=0.5cm and 1cm,>=stealth',bend angle=45,auto]
     \node [transitionV,label=above:glisprom] (prom) {};
     \node [place,label=above:glishrom] (hrom) [right= of prom] {}
@@ -101,8 +103,6 @@ The host code starts the virtual machine kernel, and library kernels.
   %  \node [place,tokens=1, label=above:$P_4$] (p4) [above right=of t2] {}
   %      edge[pre]   (t2);
 \end{tikzpicture}
-\caption{Memory Template}
-\label{memoryTemplate}
 \begin{tabular}{ll}
   glisprom & English programmer \\
   twynprom & Chinese programmer \\
