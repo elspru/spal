@@ -28,6 +28,16 @@ contact: streondj at gmail dot com
 #endif
 #define MAX_WRITE_MEMORY 0x8000 // GPU comput unit memory limit
 
+#define VECTOR_THICK_BEGIN 0x8
+#define VECTOR_THICK_MASK 0x700
+#define VECTOR_THICK_1 0
+#define VECTOR_THICK_2 1
+#define VECTOR_THICK_4 2
+#define VECTOR_THICK_8 3
+#define VECTOR_THICK_16 4
+#define VECTOR_THICK_3 7
+
+#define MAXIMUM_WORD_SERIES_LONG 0x10
 #define WORD_THICK 2
 #define GLOTTAL_STOP 0xC
 #define MAX_LONG 0xFFU
@@ -41,6 +51,7 @@ contact: streondj at gmail dot com
 #define SHORT_GRAMMAR 4
 #define SHORT_ROOT_DENOTE 0
 #define QUOTE_DENOTE 0x1D
+#define QUOTE_DENOTE_MASK 0x1F
 #define SHORT_GRAMMAR_DENOTE 0x1E
 #define SHORT_GRAMMAR_DENOTE_MASK 0x1F
 #define CONSONANT_ONE_THICK 5
@@ -102,6 +113,7 @@ contact: streondj at gmail dot com
 
 // quote sorts
 #define SORT_DENOTE_BEGIN 0xD
+#define SORT_DENOTE_MASK 0xE000
 #define LETTER_SORT_DENOTE 0
 #define WORD_SORT_DENOTE 1
 #define INDEPENDENT_CLAUSE_SORT_DENOTE 2
@@ -112,7 +124,8 @@ contact: streondj at gmail dot com
 #define CEREMONY_SORT_DENOTE 6
 
 // scalar thick
-#define SCALAR_THICK_BEGIN 0xA
+#define SCALAR_THICK_BEGIN 0xB
+#define SCALAR_THICK_MASK 0x1800
 #define EIGHT_TIDBIT_SCALAR_THICK 0
 #define SIXTEEN_TIDBIT_SCALAR_THICK 1
 #define THIRTY_TWO_TIDBIT_SCALAR_THICK 2
@@ -138,13 +151,13 @@ contact: streondj at gmail dot com
 #define INTERIOR_CONTEXT 6
 #define TIME_CONTEXT 7
 
-#define QUOTED_LITERAL_XOR_ADDRESS_INDEXFINGER 8
+#define QUOTED_LITERAL_XOR_ADDRESS_BEGIN 8
 #define QUOTED_LITERAL 0
-#define QUOTED_LITERAL_INDEXFINGER 8
+#define QUOTED_LITERAL_BEGIN 8
 #define QUOTED_ADDRESS 1
-#define QUOTED_INTEGER_INDEXFINGER 9
-#define QUOTED_GLYPH_THICK_INDEXFINGER 0xA
-#define QUOTED_CLASS_INDEXFINGER 0xC
+#define QUOTED_INTEGER_BEGIN 9
+#define QUOTED_GLYPH_THICK_BEGIN 0xA
+#define QUOTED_CLASS_BEGIN 0xC
 
 #define TRUE 1
 #define FALSE 0

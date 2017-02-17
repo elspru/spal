@@ -323,6 +323,13 @@ inline void derive_first_word(const uint8_t ACC_GEN_magnitude,
   *word_long = (uint8_t)0;                                                     \
   return;
 
+int isspace(char letter) {
+  if (letter <= 0x20) {
+    return 0 == 0;
+  } else {
+    return 0 == 1;
+  }
+}
 void first_word_derive(const uint16_t text_long, const char *ACC_text,
                        uint8_t *word_long, uint16_t *word_begin) {
   uint8_t start = 0;
@@ -347,6 +354,10 @@ void first_word_derive(const uint16_t text_long, const char *ACC_text,
               DAT word CNJ
               copy ACC number two DAT size
   */
+  for (; start < text_long; ++start) { // skips initial white space
+    if (!isspace(*(ACC_text + start)))
+      break;
+  }
   assert(vowel_Q(ACC_text[start + 0]) == TRUE ||
          consonant_Q(ACC_text[start + 0]) == TRUE);
   if (vowel_Q(ACC_text[start]) == TRUE) {
@@ -937,8 +948,8 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
   assert(quote_magnitude < 16);
   assert(quote_word != NULL);
   if (quote_magnitude == 1) {
-    *quote_word = (uint16_t)(
-        QUOTED_DENOTE | ((quote_text[0] - 0x30) << QUOTED_LITERAL_INDEXFINGER));
+    *quote_word = (uint16_t)(QUOTED_DENOTE |
+                             ((quote_text[0] - 0x30) << QUOTED_LITERAL_BEGIN));
     return;
   } else if (quote_magnitude == 2) {
     *quote_word =
@@ -954,8 +965,8 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
         (uint16_t)QUOTED_DENOTE | (SIXTEEN_BYTE_QUOTED << CONSONANT_ONE_THICK);
   }
   // constant data
-  *quote_word |= QUOTED_LITERAL << QUOTED_LITERAL_XOR_ADDRESS_INDEXFINGER;
-  *quote_word |= FALSE << QUOTED_INTEGER_INDEXFINGER;
+  *quote_word |= QUOTED_LITERAL << QUOTED_LITERAL_XOR_ADDRESS_BEGIN;
+  *quote_word |= FALSE << QUOTED_INTEGER_BEGIN;
   derive_first_word(quote_class_magnitude, quote_class, &word_magnitude, word);
   assert(word_magnitude > 0 && "to derive type of quote");
   if (word_magnitude > 0)
@@ -967,11 +978,11 @@ extern inline void derive_quote_code(const uint8_t quote_class_magnitude,
   // printf("quote_number %X\n", (uint) quote_number);
   switch (quote_number) {
   case text_GRAMMAR:
-    *quote_word |= SINGLE_BYTE_QUOTED << QUOTED_GLYPH_THICK_INDEXFINGER;
-    *quote_word |= TEXT_CLASS << QUOTED_CLASS_INDEXFINGER;
+    *quote_word |= SINGLE_BYTE_QUOTED << QUOTED_GLYPH_THICK_BEGIN;
+    *quote_word |= TEXT_CLASS << QUOTED_CLASS_BEGIN;
     break;
   case number_GRAMMAR:
-    *quote_word |= NUMBER_CLASS << QUOTED_CLASS_INDEXFINGER;
+    *quote_word |= NUMBER_CLASS << QUOTED_CLASS_BEGIN;
     break;
   default:
     // printf("unknown quote_number %X\n", (uint)quote_number);
@@ -1191,6 +1202,68 @@ uint16_t v16us_read(const uint8_t indexFinger, const v16us vector) {
   ++tablet_indexFinger;                                                        \
   break;
 
+void word_series_encode(const uint16_t text_long, const char *text,
+                        uint16_t *word_series_long, uint16_t *word_series) {
+  assert(word_series != NULL);
+  assert(word_series_long != NULL);
+  assert(*word_series_long > 0);
+
+  // till end of text
+  uint16_t text_indexFinger = 0;
+  uint16_t word_series_indexFinger = 0;
+  uint8_t word_long = 0;
+  uint16_t word_begin = 0;
+  uint16_t word_number = 0;
+  for (word_series_indexFinger = 0;
+       word_series_indexFinger < *word_series_long &&
+       text_long - text_indexFinger > 1;
+       ++word_series_indexFinger) {
+    printf("%s:%d:\ttext_indexFinger 0x%X text_long 0x%X text %s\n", __FILE__,
+           __LINE__, text_indexFinger, text_long - text_indexFinger,
+           text + text_indexFinger);
+    first_word_derive((uint8_t)(text_long - text_indexFinger),
+                      text + text_indexFinger, &word_long, &word_begin);
+    if (word_long == 0) {
+      break;
+    }
+    text_indexFinger += word_begin;
+    word_number_encode(word_long, text + text_indexFinger, &word_number);
+    word_series[word_series_indexFinger] = word_number;
+    text_indexFinger += word_long;
+  }
+  // get words
+  // add to array
+  // return  length
+  *word_series_long = word_series_indexFinger;
+}
+
+uint8_t vector_long_find(uint16_t number) {
+  if (number < 5)
+    return (uint8_t)number;
+  if (number <= 8)
+    return 8;
+  if (number <= 16)
+    return 16;
+  return 0;
+}
+
+uint16_t vector_code(uint8_t vector_long) {
+  if (vector_long == 1)
+    return VECTOR_THICK_1;
+  if (vector_long == 2)
+    return VECTOR_THICK_2;
+  if (vector_long == 3)
+    return VECTOR_THICK_3;
+  if (vector_long == 4)
+    return VECTOR_THICK_4;
+  if (vector_long == 8)
+    return VECTOR_THICK_8;
+  if (vector_long == 16)
+    return VECTOR_THICK_16;
+  assert(1 == 0);
+  return 0;
+}
+
 void independentClause_encoding(const uint16_t text_magnitude, const char *text,
                                 uint8_t *tablet_magnitude, v16us *tablet,
                                 uint16_t *text_remainder) {
@@ -1216,13 +1289,17 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
   uint16_t quote_word = 0;
   uint16_t binary_phrase_list = (uint16_t)1;
   uint8_t quote_magnitude = 0;
-  uint8_t quote_tablet_magnitude = 0;
+  // uint8_t quote_tablet_magnitude = 0;
   uint8_t current = 0x0;
   uint8_t word_long = 0;
   uint16_t word_begin = 0;
   uint16_t quote_sort_code = 0;
   uint16_t quote_sort = 0;
   uint16_t scalar_thick = 0;
+  uint16_t word_series[MAXIMUM_WORD_SERIES_LONG] = {0};
+  uint16_t word_series_long = MAXIMUM_WORD_SERIES_LONG;
+  uint8_t vector_long = 0;
+  uint16_t series_indexFinger = 0;
   memset(word, 0, WORD_LONG);
   memset(derived_word, 0, WORD_LONG);
   assert(text != NULL);
@@ -1237,6 +1314,12 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
   for (text_indexFinger = 0; text_indexFinger < text_magnitude;
        ++text_indexFinger) {
     glyph = text[text_indexFinger];
+    // printf("%s:%d:\t text_magnitude 0x%X text %s\n", __FILE__, __LINE__,
+    //       text_magnitude, text + text_indexFinger);
+    // printf("%s:%d:\t letter %c\n", __FILE__, __LINE__, glyph);
+    if (glyph == 0) {
+      assert(1 == 0);
+    }
     if (consonant_Q(glyph) == TRUE || vowel_Q(glyph) == TRUE ||
         tone_Q(glyph) == TRUE) {
       word[word_magnitude] = glyph;
@@ -1290,10 +1373,13 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
           case quoted_GRAMMAR:
             // printf("detected quote word %X\n", (uint)text_indexFinger);
             ++text_indexFinger;
+            quote_word = 0;
             detect_ACC_quote_magnitude(
                 (uint8_t)(text_magnitude - text_indexFinger),
                 text + text_indexFinger, &quote_magnitude, &quote_indexFinger);
-            printf("detected quote size %X\n", (uint)quote_magnitude);
+            printf("%s:%d\tdetected quote size 0x%X indexFinger 0x%X \n",
+                   __FILE__, __LINE__, (uint)quote_magnitude,
+                   quote_indexFinger);
             // printf("quote_indexFinger %X\n", (uint) quote_indexFinger -
             // text_indexFinger);
             // printf("quote %s\n", text + text_indexFinger +
@@ -1301,9 +1387,9 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
 
             // encode the quote sort word, then switch case it
             //  find quote sort word
+            text_indexFinger += SILENCE_GLYPH_LONG;
             printf("%s:%d\tletter %c\n", __FILE__, __LINE__,
                    text[text_indexFinger]);
-            text_indexFinger += SILENCE_GLYPH_LONG;
             first_word_derive(WORD_LONG, text + text_indexFinger, &word_long,
                               &word_begin);
             printf("%s:%d\tletter %c word_long 0x%X\n", __FILE__, __LINE__,
@@ -1312,55 +1398,91 @@ void independentClause_encoding(const uint16_t text_magnitude, const char *text,
                                &quote_sort_code);
             printf("%s:%d\tquote_sort_code %X\n", __FILE__, __LINE__,
                    quote_sort_code);
-            switch(quote_sort_code) {
-              case word_GRAMMAR:
-            printf("%s:%d\tword quote detected\n", __FILE__, __LINE__);
-                quote_word = QUOTE_DENOTE;
-                quote_sort = WORD_SORT_DENOTE;
-                quote_word |= quote_sort << SORT_DENOTE_BEGIN;
-                scalar_thick = SIXTEEN_TIDBIT_SCALAR_THICK;
-                quote_word |= scalar_thick << SCALAR_THICK_BEGIN;
-                // convert words into array, then into vector
-                // set length appropriately
-                // load encoded words
-                // leave the encoded place and text place properly
-                break;
-              case number_GRAMMAR:
-            printf("%s:%d\tnumber quote detected\n", __FILE__, __LINE__);
-                break;
-              case independent_clause_GRAMMAR:
-            printf("%s:%d\tsentence quote detected\n", __FILE__, __LINE__);
-                break;
+            switch (quote_sort_code) {
+            case word_GRAMMAR:
+              printf("%s:%d\tword quote detected\n", __FILE__, __LINE__);
+              quote_word = QUOTE_DENOTE;
+              quote_sort = WORD_SORT_DENOTE;
+              quote_word |= quote_sort << SORT_DENOTE_BEGIN;
+              printf("%s:%d\tquote_word 0x%X\n", __FILE__, __LINE__,
+                     quote_word);
+              scalar_thick = SIXTEEN_TIDBIT_SCALAR_THICK;
+              quote_word |= scalar_thick << SCALAR_THICK_BEGIN;
+              // find length till next quote_sort_code
+              printf("%s:%d\tquote_word 0x%X\n", __FILE__, __LINE__,
+                     quote_word);
+              // quote_indexFinger and quote_magnitude tell me
+              text_indexFinger += quote_indexFinger - SILENCE_GLYPH_LONG;
+              // encode them as words
+              // convert words into array,
+              word_series_encode(quote_magnitude, text + text_indexFinger,
+                                 &word_series_long, word_series);
+              printf("%s:%d\tword_series_long 0x%X\n", __FILE__, __LINE__,
+                     word_series_long);
+              // find the best vector size for them
+              vector_long = vector_long_find(word_series_long);
+              printf("%s:%d\tvector_long 0x%X\n", __FILE__, __LINE__,
+                     vector_long);
+              // set length appropriately
+              printf("%s:%d\tquote_word 0x%X\n", __FILE__, __LINE__,
+                     quote_word);
+              quote_word |= vector_code(vector_long) << VECTOR_THICK_BEGIN;
+              printf("%s:%d\tquote_word 0x%X\n", __FILE__, __LINE__,
+                     quote_word);
+              // append the quote and words to the tablet
+              v16us_write(tablet_indexFinger, quote_word, tablet);
+              ++tablet_indexFinger;
+              for (series_indexFinger = 0;
+                   series_indexFinger < word_series_long;
+                   ++series_indexFinger) {
+                v16us_write(tablet_indexFinger, word_series[series_indexFinger],
+                            tablet);
+                ++tablet_indexFinger;
+              }
+              // leave the encoded place and text place properly
+              text_indexFinger += quote_magnitude + SILENCE_GLYPH_LONG * 2 +
+                                  word_long + QUOTED_WORD_LONG - 1;
+              printf("%s:%d\ttext %s\n", __FILE__, __LINE__,
+                     text + text_indexFinger);
+              break;
+            case number_GRAMMAR:
+              printf("%s:%d\tnumber quote detected\n", __FILE__, __LINE__);
+              break;
+            case independent_clause_GRAMMAR:
+              printf("%s:%d\tsentence quote detected\n", __FILE__, __LINE__);
+              break;
             }
-            derive_quote_code(
-                (uint8_t)(quote_indexFinger - SILENCE_GLYPH_LONG),
-                text + text_indexFinger + SILENCE_GLYPH_LONG, quote_magnitude,
-                text + text_indexFinger + quote_indexFinger, &quote_word);
+            //          derive_quote_code(
+            //              (uint8_t)(quote_indexFinger - SILENCE_GLYPH_LONG),
+            //              text + text_indexFinger + SILENCE_GLYPH_LONG,
+            //              quote_magnitude,
+            //              text + text_indexFinger + quote_indexFinger,
+            //              &quote_word);
             // printf("quote_word %X\n", (uint)quote_word);
             //((uint16_t *)tablet)[tablet_indexFinger] = quote_word;
-            v16us_write(tablet_indexFinger, quote_word, tablet);
-            ++tablet_indexFinger;
-            copy_ACC_text_DAT_tablet(
-                text + text_indexFinger + quote_indexFinger, quote_magnitude,
-                tablet, tablet_indexFinger,
-                (uint8_t)(*tablet_magnitude * TABLET_LONG -
-                          tablet_indexFinger));
-            // printf("text_indexFinger %X, quote_indexFinger %X,
-            // quote_magnitude
-            // %X\n",
-            //       (uint)text_indexFinger, (uint)quote_indexFinger,
-            //       (uint)quote_magnitude);
-            text_indexFinger =
-                (uint8_t)(text_indexFinger + (quote_indexFinger)*2 +
-                          QUOTED_WORD_LONG + quote_magnitude - 1);
-            word_magnitude = 0;
-            fit_quote_magnitude(quote_magnitude, &quote_tablet_magnitude);
-            // printf("qll %X\n", (uint)
-            //     quote_tablet_magnitude);
-            tablet_indexFinger =
-                (uint8_t)(tablet_indexFinger + quote_tablet_magnitude);
-            //    printf("ls %X\n", (uint)
-            //        tablet_indexFinger);
+            // v16us_write(tablet_indexFinger, quote_word, tablet);
+            //++tablet_indexFinger;
+            // copy_ACC_text_DAT_tablet(
+            //    text + text_indexFinger + quote_indexFinger, quote_magnitude,
+            //    tablet, tablet_indexFinger,
+            //    (uint8_t)(*tablet_magnitude * TABLET_LONG -
+            //              tablet_indexFinger));
+            //// printf("text_indexFinger %X, quote_indexFinger %X,
+            //// quote_magnitude
+            //// %X\n",
+            ////       (uint)text_indexFinger, (uint)quote_indexFinger,
+            ////       (uint)quote_magnitude);
+            // text_indexFinger =
+            //    (uint8_t)(text_indexFinger + (quote_indexFinger)*2 +
+            //              QUOTED_WORD_LONG + quote_magnitude - 1);
+            // word_magnitude = 0;
+            // fit_quote_magnitude(quote_magnitude, &quote_tablet_magnitude);
+            //// printf("qll %X\n", (uint)
+            ////     quote_tablet_magnitude);
+            // tablet_indexFinger =
+            //    (uint8_t)(tablet_indexFinger + quote_tablet_magnitude);
+            ////    printf("ls %X\n", (uint)
+            ////        tablet_indexFinger);
             break;
 
           case nominative_case_GRAMMAR:
@@ -1511,8 +1633,7 @@ extern inline void play_quote(const v16us *tablet,
     assert(quote_magnitude < tablet_magnitude * TABLET_LONG * WORD_THICK);
     // printf("quote_fill ");
     if (quote_magnitude == 0) {
-      ((uint16_t *)quote_fill)[0] =
-          (uint16_t)(word >> QUOTED_LITERAL_INDEXFINGER);
+      ((uint16_t *)quote_fill)[0] = (uint16_t)(word >> QUOTED_LITERAL_BEGIN);
       // printf("%04X ", (uint)(*quote_fill)[0]);
     }
     for (quote_indexFinger = 0; quote_indexFinger < quote_magnitude;
@@ -1978,7 +2099,6 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
   for (; indexFinger < sort_array_long; ++indexFinger) {
     printf("%016lX ", sort_array[indexFinger]);
   }
-  printf("\n");
   *code_name = hash(sort_array_long, sort_array);
 }
 
@@ -2383,6 +2503,7 @@ void word_code_translation(const uint16_t word_code, uint16_t *text_long,
                            char *text) {
   assert(text != NULL);
   assert(text_long != NULL);
+  assert(*text_long >= WORD_LONG);
   const uint16_t short_sort = word_code & SHORT_SORT_MASK;
   const uint16_t long_sort = word_code & CONSONANT_ONE_MASK;
   if (word_code == 0) {
@@ -2399,6 +2520,56 @@ void word_code_translation(const uint16_t word_code, uint16_t *text_long,
   }
 }
 
+#define quote_word_number_modernize                                            \
+  gross_text_long += word_long;                                                \
+  vacancy_text_long -= word_long;                                              \
+  word_long = vacancy_text_long;
+
+void quote_word_translate(uint16_t quote_code, uint16_t *text_long,
+                          char *text) {
+  assert(text_long != NULL);
+  assert(text != NULL);
+  // translate the quote sections and append them
+  const uint16_t vector_thick =
+      (quote_code & VECTOR_THICK_MASK) >> VECTOR_THICK_BEGIN;
+  const uint16_t scalar_thick =
+      (quote_code & SCALAR_THICK_MASK) >> SCALAR_THICK_BEGIN;
+  const uint16_t sort_denote =
+      (quote_code & SORT_DENOTE_MASK) >> SORT_DENOTE_BEGIN;
+  uint16_t gross_text_long = 0;
+  uint16_t vacancy_text_long = *text_long;
+  uint16_t word_long = vacancy_text_long;
+  switch (sort_denote) {
+  case WORD_SORT_DENOTE:
+    word_code_translation(word_GRAMMAR, &word_long, text + gross_text_long);
+    break;
+  default:
+    assert(1 == 0);
+    break;
+  }
+  quote_word_number_modernize;
+  switch (vector_thick) {
+  case VECTOR_THICK_2:
+    word_code_translation(two_WORD, &word_long, text + gross_text_long);
+    break;
+  default:
+    printf("%s:%d\t vector_thick 0x%X\n", __FILE__, __LINE__, vector_thick);
+    assert(1 == 0);
+    break;
+  }
+  quote_word_number_modernize;
+  switch (scalar_thick) {
+  case SIXTEEN_TIDBIT_SCALAR_THICK:
+    word_code_translation(number_GRAMMAR, &word_long, text + gross_text_long);
+    break;
+  default:
+    assert(1 == 0);
+    break;
+  }
+  quote_word_number_modernize;
+  *text_long = gross_text_long;
+}
+
 void tablet_translate(const v16us tablet, uint16_t *text_long, char *text) {
   assert(text != NULL);
   assert(*text == (char)0);
@@ -2411,14 +2582,23 @@ void tablet_translate(const v16us tablet, uint16_t *text_long, char *text) {
   uint8_t tablet_indexFinger = 1;
   for (; tablet_indexFinger < TABLET_LONG; ++tablet_indexFinger) {
     word_code = v16us_read(tablet_indexFinger, tablet);
+    if (word_code == 0)
+      continue;
     assert(vacancy_text_long > WORD_LONG);
-    word_long = 0;
-    word_code_translation(word_code, &word_long, text + gross_text_long);
+    word_long = vacancy_text_long;
+    printf("%s:%d word_code 0x%X\n", __FILE__, __LINE__, word_code);
+    if ((word_code & QUOTE_DENOTE_MASK) == QUOTE_DENOTE) {
+      quote_word_translate(word_code, &word_long, text + gross_text_long);
+    } else {
+      word_code_translation(word_code, &word_long, text + gross_text_long);
+    }
+    printf("%s:%d text %s\n", __FILE__, __LINE__, text);
     vacancy_text_long -= word_long;
     gross_text_long += word_long;
   }
   *text_long = gross_text_long;
 }
+
 void filename_establish(const v16us recipe, uint16_t *produce_filename_long,
                         char *filename) {
   assert(filename != NULL);
@@ -2506,6 +2686,105 @@ void sort_array_tablet_translate(uint16_t sort_array_long, uint64_t *sort_array,
   }
 }
 
+uint16_t vector_long_translate(uint16_t vector_code) {
+  switch (vector_code) {
+  case VECTOR_THICK_1:
+    return 1;
+  case VECTOR_THICK_2:
+    return 2;
+  case VECTOR_THICK_3:
+    return 3;
+  case VECTOR_THICK_4:
+    return 4;
+  case VECTOR_THICK_8:
+    return 8;
+  case VECTOR_THICK_16:
+    return 16;
+  default:
+    assert(1 == 0);
+  }
+}
+void argument_translate(uint8_t previous_indicator, uint8_t tablet_indexFinger,
+                        v16us tablet, uint16_t *text_long, char *text) {
+  assert(tablet_indexFinger > previous_indicator);
+  // get type
+  uint16_t quote_sort = v16us_read(previous_indicator + 1, tablet);
+  uint16_t sort_denote = (quote_sort & SORT_DENOTE_MASK) >> SORT_DENOTE_BEGIN;
+  uint16_t vector_long = vector_long_translate(
+      (quote_sort & VECTOR_THICK_MASK) >> VECTOR_THICK_BEGIN);
+  uint8_t indexFinger = 0;
+  uint16_t word = 0;
+  uint16_t gross_text_long = 0;
+  uint16_t vacant_text_long = *text_long;
+  uint16_t word_long;
+  // act appropriately
+  switch (sort_denote) {
+  // if text then return string quote of the length of the vector
+  // if word then translate each to ASCII, and make string quote
+  case WORD_SORT_DENOTE:
+    // get length
+    text[gross_text_long] = '"';
+    ++gross_text_long;
+    --vacant_text_long;
+    for (indexFinger = 0; indexFinger < vector_long; ++indexFinger) {
+      word = v16us_read(indexFinger + previous_indicator + 2, tablet);
+      word_long = vacant_text_long;
+      word_code_translation(word, &word_long, text + gross_text_long);
+      gross_text_long += word_long;
+      vacant_text_long -= word_long;
+    }
+    text[gross_text_long] = '"';
+    ++gross_text_long;
+    --vacant_text_long;
+    *text_long = gross_text_long;
+    break;
+  // if number then convert to hexadecimal number
+  default:
+    assert(1 == 0);
+  }
+}
+
+void input_argument_translate(const uint16_t recipe_long, const v16us *recipe,
+                              uint16_t *text_long, char *text) {
+  assert(recipe != NULL);
+  assert(text_long != NULL);
+  assert(text != NULL);
+  // for each grammatical case return the literal C values
+  uint8_t recipe_indexFinger = 0;
+  uint8_t tablet_indexFinger = 1;
+  uint16_t indicator_list = 0;
+  uint16_t indicator = 0;
+  uint16_t word_code = 0;
+  uint8_t previous_indicator = 0;
+  uint8_t finally = FALSE;
+  v16us tablet = {0};
+  for (recipe_indexFinger = 0; recipe_indexFinger < recipe_long;
+       ++recipe_indexFinger) {
+    tablet = recipe[recipe_indexFinger];
+    indicator_list = (uint16_t)tablet.s0;
+    indicator = indicator_list & 1;
+    for (tablet_indexFinger = 1; tablet_indexFinger < TABLET_LONG;
+         ++tablet_indexFinger) {
+      if (((indicator_list >> tablet_indexFinger) & 1) == indicator) {
+        word_code = v16us_read(tablet_indexFinger, tablet);
+        switch (word_code) {
+        case deontic_mood_GRAMMAR:
+          finally = TRUE;
+          break;
+        case accusative_case_GRAMMAR:
+          // grab quoted contents and output it appropriatly
+          argument_translate(previous_indicator, tablet_indexFinger, tablet,
+                             text_long, text);
+          break;
+        }
+        previous_indicator = tablet_indexFinger;
+      }
+      if (finally == TRUE)
+        break;
+    }
+  }
+}
+
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
                            uint16_t *produce_text_long, char *text,
                            uint16_t *filename_long, char *filename,
@@ -2527,6 +2806,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
   const uint16_t indicator_referential = indicator_list & 1;
   uint16_t indicator_indexFinger = 0;
   uint16_t perspective = 0;
+  uint16_t vacant_text_long = *produce_text_long;
   for (indicator_indexFinger = TABLET_LONG - 1; indicator_indexFinger > 0;
        --indicator_indexFinger) {
     if ((uint16_t)(((indicator_list >> indicator_indexFinger) & 1) ==
@@ -2540,7 +2820,7 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     uint8_t sort_array_long = 16;
     // uint8_t tablet_indexFinger = 0;
     uint64_t sort_array[16] = {0};
-    // uint16_t word_long = 5;
+    uint16_t word_long = 5;
     v16us sort_tablet = {0};
     // char word[5] = {0};
     sort_array_establish(1, recipe, &sort_array_long, sort_array);
@@ -2558,12 +2838,17 @@ void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
     ++*produce_text_long;
     // translate input arguments
     printf("%s:%d TODO include input arguments\n", __FILE__, __LINE__);
+    word_long = vacant_text_long;
+    input_argument_translate(recipe_magnitude, recipe, &word_long,
+                             text + *produce_text_long);
+    *produce_text_long += word_long;
     text[*produce_text_long] = ')';
     ++*produce_text_long;
     text[*produce_text_long] = ';';
     ++*produce_text_long;
     text[*produce_text_long] = '\n';
     ++*produce_text_long;
+    printf("%s:%d text %s\n", __FILE__, __LINE__, text);
     return;
   }
   // printf("%s,%d perspective %X\n", __FILE__, __LINE__, perspective);

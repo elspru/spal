@@ -93,17 +93,6 @@ int main(int argc, char *argv[]) {
 // convert text to binary encoding
 // convert binary to OpenCL source code
 
-  v16us equals_check = {0};
-  if (equals_check == 0) {
-    printf("hoorah equals_check is zero\n");
-  }
-  equals_check.s5 = 4;
-  if (equals_check == 0) {
-    printf("boowah equals_check is zero\n");
-  } else {
-    printf("boowah equals_check not zero\n");
-  }
-
 #define MAXIMUM_PRODUCE_TEXT_LONG 0x1000
   uint16_t produce_text_long = MAXIMUM_PRODUCE_TEXT_LONG;
   char produce_text[MAXIMUM_PRODUCE_TEXT_LONG] = "";

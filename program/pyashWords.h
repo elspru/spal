@@ -1,8 +1,6 @@
 #ifndef PYASH_H
 #define PYASH_H
 #define infinitive_GRAMMAR 0x20DE // ni
-#define return_GRAMMAR 0x23
-#define finally_GRAMMAR 0x25
 #define nominative_case_GRAMMAR 0x24DE // na
 #define accusative_case_GRAMMAR 0x245E // ka
 #define topic_case_GRAMMAR 0x255E // ta
@@ -104,10 +102,11 @@
 #define state_context_GRAMMAR 0x31DE // ro
 #define hope_GRAMMAR 0x416F // cwih
 #define factive_evidential_GRAMMAR 0x4117 // kwih
+#define return_GRAMMAR 0x219E // fi
 #define optative_mood_GRAMMAR 0x4227 // psih
 #define potential_mood_GRAMMAR 0x5A57 // tseh
 #define allative_case_GRAMMAR 0x595F // lweh
-#define anthropic_gender_GRAMMAR 0x219E // fi
+#define anthropic_gender_GRAMMAR 0x4637 // nrih
 #define same_subject_marker_GRAMMAR 0x5D57 // tceh
 #define different_subject_GRAMMAR 0x2DDE // re
 #define fear_GRAMMAR 0x666F // croh
@@ -159,6 +158,7 @@
 #define cessative_aspect_GRAMMAR 0x2C9E // pe
 #define curious_GRAMMAR 0x4617 // krih
 #define intensifier_GRAMMAR 0x4457 // tfih
+#define finally_GRAMMAR 0x2D9E // fe
 #define aside_GRAMMAR 0x4E27 // prah
 #define evidential_GRAMMAR 0x4657 // trih
 #define evidential_case_GRAMMAR 0x4937 // nwah
@@ -174,7 +174,7 @@
 #define familiar_register_GRAMMAR 0x4667 // frih
 #define wounded_GRAMMAR 0x4E67 // frah
 #define fool_GRAMMAR 0x560F // mruh
-#define sympathy_GRAMMAR 0x4637 // nrih
+#define sympathy_GRAMMAR 0x459F // djih
 #define thank_GRAMMAR 0x4E17 // krah
 #define shame_GRAMMAR 0x566F // cruh
 #define phrase_marker_GRAMMAR 0x4867 // fyah
@@ -204,7 +204,7 @@
 #define melancholy_GRAMMAR 0x630F // mloh
 #define singular_GRAMMAR 0x2A7E // du
 #define patience_GRAMMAR 0x46AF // jrih
-#define referential_GRAMMAR 0x2D9E // fe
+#define referential_GRAMMAR 0x5E67 // freh
 #define lonely_GRAMMAR 0x6317 // kloh
 #define charm_GRAMMAR 0x6617 // kroh
 #define enthusiasm_GRAMMAR 0x5557 // tcuh
@@ -226,7 +226,7 @@
 #define distal_demonstrative_GRAMMAR 0x489F // dyah
 #define jealous_GRAMMAR 0x5177 // rwuh
 #define imprecative_mood_GRAMMAR 0x6657 // troh
-#define indifference_GRAMMAR 0x459F // djih
+#define indifference_GRAMMAR 0x429F // dzih
 #define assumptive_mood_GRAMMAR 0x514F // swuh
 #define jest_GRAMMAR 0x4A8F // bzah
 #define namely_GRAMMAR 0x4197 // gwih
@@ -280,8 +280,8 @@
 #define frugal_GRAMMAR 0x4967 // fwah
 #define ecstatic_GRAMMAR 0x4D8F // bjah
 #define equanimity_GRAMMAR 0x48AF // jyah
-#define pegative_case_GRAMMAR 0x5927 // pweh
-#define vindication_GRAMMAR 0x5E27 // preh
+#define pegative_case_GRAMMAR 0x4497 // gvih
+#define vindication_GRAMMAR 0x4727 // pxih
 #define expiring_GRAMMAR 0x4F17 // kxah
 #define henceforward_GRAMMAR 0x6457 // tfoh
 #define contrition_GRAMMAR 0x4717 // kxih
@@ -318,13 +318,13 @@
 #define ordinal_GRAMMAR 0x6177 // rwoh
 #define kilo_GRAMMAR 0x6017 // kyoh
 #define sequential_GRAMMAR 0x614F // swoh
-#define partitive_case_GRAMMAR 0x4727 // pxih
+#define partitive_case_GRAMMAR 0x4F27 // pxah
 #define augmentative_GRAMMAR 0x5F57 // txeh
 #define predicative_GRAMMAR 0x479F // dxih
 #define prolative_case_GRAMMAR 0x6727 // pxoh
 #define actor_role_GRAMMAR 0x335E // xo
 #define causative_GRAMMAR 0x6A17 // ks6h
-#define wear_out_GRAMMAR 0x4F27 // pxah
+#define wear_out_GRAMMAR 0x66D7 // xroh
 #define oblique_case_GRAMMAR 0x5977 // rweh
 #define trial_number_GRAMMAR 0x6D27 // pc6h
 #define centric_case_GRAMMAR 0x5E97 // greh
@@ -335,7 +335,7 @@
 #define pro_sentence_GRAMMAR 0x6327 // ploh
 #define binary_value_GRAMMAR 0x22DE // vi
 #define blase_GRAMMAR 0x4B8F // blah
-#define ergative_case_GRAMMAR 0x4497 // gvih
+#define ergative_case_GRAMMAR 0x5C97 // gveh
 #define locative_case_GRAMMAR 0x615F // lwoh
 #define star_gender_GRAMMAR 0x4BCF // qlah
 #define multal_number_GRAMMAR 0x6B0F // ml6h
@@ -352,7 +352,7 @@
 #define citation_form_GRAMMAR 0x6D57 // tc6h
 #define direct_object_GRAMMAR 0x5077 // ryuh
 #define passive_voice_GRAMMAR 0x6027 // pyoh
-#define finite_verb_GRAMMAR 0x5E67 // freh
+#define finite_verb_GRAMMAR 0x2F3E // qe
 #define empathetic_joy_GRAMMAR 0x5F27 // pxeh
 #define gnomic_mood_GRAMMAR 0x600F // myoh
 #define mineral_gender_GRAMMAR 0x43CF // qlih
@@ -362,7 +362,7 @@
 #define lative_case_GRAMMAR 0x449F // dvih
 #define evitative_case_GRAMMAR 0x2EDE // ve
 #define animate_gender_GRAMMAR 0x5B0F // mleh
-#define possessed_case_GRAMMAR 0x429F // dzih
+#define possessed_case_GRAMMAR 0x5F9F // dxeh
 #define antessive_case_GRAMMAR 0x8A57 // tsa7h
 #define adverbial_case_GRAMMAR 0x26DE // va
 #define subessive_case_GRAMMAR 0x5C8F // bveh
@@ -387,13 +387,13 @@
 #define self_confidence_GRAMMAR 0x4C8F // bvah
 #define indirect_speech_GRAMMAR 0x6037 // nyoh
 #define superlative_case_GRAMMAR 0x5827 // pyeh
-#define planetary_gender_GRAMMAR 0x4097 // gyih
+#define planetary_gender_GRAMMAR 0x5E27 // preh
 #define propositive_mood_GRAMMAR 0x349E // p6
 #define associative_case_GRAMMAR 0x6117 // kwoh
 #define modal_case_GRAMMAR 0x5B9F // dleh
 #define electric_current_GRAMMAR 0x4EAF // jrah
 #define reciprocal_voice_GRAMMAR 0x4EB7 // vrah
-#define inanimate_gender_GRAMMAR 0x5F9F // dxeh
+#define inanimate_gender_GRAMMAR 0x4397 // glih
 #define core_benefactive_GRAMMAR 0x6417 // kfoh
 #define successive_clause_GRAMMAR 0x505F // lyuh
 #define applicative_voice_GRAMMAR 0x605F // lyoh
@@ -404,7 +404,7 @@
 #define excessive_duration_GRAMMAR 0x5117 // kwuh
 #define luminous_intensity_GRAMMAR 0x345E // k6
 #define continutive_aspect_GRAMMAR 0x6857 // ty6h
-#define singulative_number_GRAMMAR 0x4397 // glih
+#define singulative_number_GRAMMAR 0x5397 // gluh
 #define necessitative_mood_GRAMMAR 0x6E37 // nr6h
 #define passive_participle_GRAMMAR 0x6427 // pfoh
 #define existential_clause_GRAMMAR 0x684F // sy6h
@@ -413,14 +413,14 @@
 #define connective_particle_GRAMMAR 0x40AF // jyih
 #define remote_future_tense_GRAMMAR 0x6B57 // tl6h
 #define amount_of_substance_GRAMMAR 0x343E // m6
-#define postpositional_case_GRAMMAR 0x5127 // pwuh
+#define postpositional_case_GRAMMAR 0x5927 // pweh
 #define allocutive_agreement_GRAMMAR 0x357E // l6
-#define to_case_GRAMMAR 0x5817 // kyeh
+#define to_case_GRAMMAR 0x655E // ta_
 #define distributive_pronoun_GRAMMAR 0x428F // bzih
 #define frequentative_aspect_GRAMMAR 0x45DE // ra7
 #define floating_point_number_GRAMMAR 0x415E // ti7
 #define past_passive_participle_GRAMMAR 0x405E // ki7
-#define locative_directional_case_GRAMMAR 0x655E // ta_
+#define locative_directional_case_GRAMMAR 0x455E // ta7
 #define nth_power_GRAMMAR 0x60DE // ni_
 #define dis__GRAMMAR 0x427E // di7
 #define de__GRAMMAR 0x367E // d6
@@ -448,7 +448,7 @@
 #define _ster_GRAMMAR 0x6D3E // se_
 #define _cracy_GRAMMAR 0x41DE // ri7
 #define _plasty_GRAMMAR 0xC227 // psi_h
-#define _archy_GRAMMAR 0x455E // ta7
+#define _archy_GRAMMAR 0x8557 // tci7h
 #define _ize_GRAMMAR 0x8257 // tsi7h
 #define _ide_GRAMMAR 0x407E // yi7
 #define _ible_GRAMMAR 0x363E // b6

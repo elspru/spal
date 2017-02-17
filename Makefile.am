@@ -57,7 +57,7 @@ library_library_dictionary_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)#\
 #         -Wstack-usage=256 # data bytes per warp
 
 # vm 
-bin_PROGRAMS = binary/encoding binary/spal binary/spal_dictionary
+bin_PROGRAMS = binary/spal binary/spal_dictionary
 binary_spal_SOURCES = program/spal_compile.c 
 binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
      #    -Wstack-usage=32768  #L1 Cache
@@ -74,12 +74,12 @@ binary_spal_LDADD =  library/library_seed.a \
 #          library/library_simpleCL.a
 # library/library_programmer.a library/library_random.a 
 
-binary_encoding_SOURCES = program/encoding.c
-binary_encoding_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
-  #       -Wstack-usage=32768  #L1 Cache
-binary_encoding_LDADD = library/library_seed.a \
-          library/library_genericOpenCL.a library/library_dictionary.a
-#          library/library_simpleCL.a
+#binary_encoding_SOURCES = program/encoding.c
+#binary_encoding_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
+#  #       -Wstack-usage=32768  #L1 Cache
+#binary_encoding_LDADD = library/library_seed.a \
+#          library/library_genericOpenCL.a library/library_dictionary.a
+##          library/library_simpleCL.a
 
 
 
