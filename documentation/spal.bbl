@@ -16,5 +16,30 @@
   {}
 \endgroup
 
+
+\refsection{0}
+  \sortlist[entry]{nty/global}
+    \entry{JPL10}{article}{}
+      \name{author}{1}{}{%
+        {{hash=4f84ca707ba20e039542ce1a3cf7730a}{%
+           family={Holzmann},
+           family_i={H\bibinitperiod},
+           given={Gerard\bibnamedelima J.},
+           given_i={G\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{4f84ca707ba20e039542ce1a3cf7730a}
+      \strng{fullhash}{4f84ca707ba20e039542ce1a3cf7730a}
+      \field{sortinit}{H}
+      \field{sortinithash}{82012198d5dfa657b8c4a168793268a6}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{NASA/JPL Laboratory for Reliable Software}
+      \field{title}{The Power of Ten – Rules for Developing Safety Critical Code}
+      \verb{url}
+      \verb http://pixelscommander.com/wp-content/uploads/2014/12/P10.pdf
+      \endverb
+    \endentry
+  \endsortlist
+\endrefsection
 \endinput
 
