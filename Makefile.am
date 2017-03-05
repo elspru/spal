@@ -21,6 +21,7 @@ SUBDIRS = .
 noinst_LIBRARIES =  library/library_seed.a \
                     library/library_genericOpenCL.a \
                     library/library_dictionary.a \
+                    library/library_parser.a \
                     library/library_dialogue.a
                     # library/library_simpleCL.a \
                     # library/library_programmer.a  \
@@ -28,7 +29,13 @@ noinst_LIBRARIES =  library/library_seed.a \
 
 
 library_library_seed_a_SOURCES = program/seed.c program/seed.h
-library_library_seed_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)#\
+library_library_seed_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
+
+library_library_parser_a_SOURCES =  program/sort.h program/parser.c \
+                                       program/parser.h 
+
+library_library_parser_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)
+#\
  #        -Wstack-usage=256 # data bytes per warp
 
 library_library_genericOpenCL_a_SOURCES = program/genericOpenCL.c program/genericOpenCL.h
@@ -59,27 +66,11 @@ library_library_dictionary_a_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS)#\
 # vm 
 bin_PROGRAMS = binary/spal binary/spal_dictionary
 binary_spal_SOURCES = program/spal_compile.c 
-binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
-     #    -Wstack-usage=32768  #L1 Cache
+binary_spal_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) 
 binary_spal_LDADD =  library/library_seed.a \
           library/library_genericOpenCL.a library/library_dictionary.a  \
-        library/library_dialogue.a
+        library/library_dialogue.a library/library_parser.a
 #          library/library_simpleCL.a 
-
-#binary_programmer_SOURCES = program/opencl_programmer.c 
-#binary_programmer_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) \
-#         -Wstack-usage=32768  #L1 Cache
-#binary_programmer_LDADD = library/library_seed.a \
-#          library/library_genericOpenCL.a library/library_dictionary.a\
-#          library/library_simpleCL.a
-# library/library_programmer.a library/library_random.a 
-
-#binary_encoding_SOURCES = program/encoding.c
-#binary_encoding_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
-#  #       -Wstack-usage=32768  #L1 Cache
-#binary_encoding_LDADD = library/library_seed.a \
-#          library/library_genericOpenCL.a library/library_dictionary.a
-##          library/library_simpleCL.a
 
 
 
@@ -87,8 +78,8 @@ binary_spal_dictionary_SOURCES = program/spal_dictionary.c
 binary_spal_dictionary_CFLAGS = -I$(top_srcdir) $(MY_CFLAGS) # \
        #  -Wstack-usage=32768  #L1 Cache
 binary_spal_dictionary_LDADD = library/library_genericOpenCL.a \
-  library/library_seed.a  library/library_dictionary.a 
-
+  library/library_seed.a  library/library_dictionary.a \
+  library/library_parser.a library/library_dialogue.a
 # TESTS
 #TESTS = check_vm
 #check_PROGRAMS = check_vm

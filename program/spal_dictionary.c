@@ -26,92 +26,15 @@ contact: streondj at gmail dot com
 
 #include "agree.h"
 #include "genericOpenCL.h"
+#include "parser.h"
 #include "seed.h"
+#include "dialogue.h"
 #define VALGRIND
 #define NEWLINE '\n'
 #define HOLLOW_LETTER ' '
 
 #define MAXIMUM_PAPER_LONG 4096
 #define MAXIMUM_PAPER_MAGNITUDE 4096
-static void paper_read(const char *file_name, const size_t paper_number,
-                       uint16_t *paper_size, char *paper_storage) {
-  FILE *file_spot = NULL;
-  int answer = 0;
-  uint16_t text_spot = 0;
-  uint16_t size = 0;
-  int glyph = (char)0;
-  assert(file_name != 0);
-  assert(strlen(file_name) > 0);
-  assert(paper_storage != NULL);
-  assert(*paper_size >= MAXIMUM_PAPER_LONG);
-  file_spot = fopen(file_name, "r");
-  assert(file_spot != NULL);
-  if (file_spot != NULL) {
-    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
-    // assert(answer == 0);
-    if (answer == 0) {
-      size = (uint16_t)(fread(paper_storage, MAXIMUM_PAPER_LONG, 1, file_spot));
-      if (size != 0) {
-        size = (uint16_t)(size * MAXIMUM_PAPER_LONG);
-      } else {
-        answer =
-            fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
-        assert(answer == 0);
-        for (text_spot = 0; text_spot < MAXIMUM_PAPER_LONG; ++text_spot) {
-          glyph = fgetc(file_spot);
-          if (glyph == EOF)
-            break;
-          paper_storage[text_spot] = (char)glyph;
-          ++size;
-        }
-      }
-      // printf("%X size \n", (uint) size);
-    } else {
-      printf("fseek fail PFV");
-      size = 0;
-    }
-    answer = fclose(file_spot);
-    assert(answer == 0);
-  } else {
-    printf("file open fail PFV");
-    size = 0;
-  }
-  *paper_size = size;
-  // assert(*paper_size != 0);
-}
-
-// static void paper_write(const char *file_name, const size_t paper_number,
-//                        uint16_t paper_size, char *paper_storage) {
-//  FILE *file_spot = NULL;
-//  int answer = 0;
-//  uint16_t size = 0;
-//  assert(file_name != 0);
-//  assert(strlen(file_name) > 0);
-//  assert(paper_storage != NULL);
-//  assert(paper_size <= MAXIMUM_PAPER_LONG);
-//  file_spot = fopen(file_name, "w");
-//  assert(file_spot != NULL);
-//  if (file_spot != NULL) {
-//    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG,
-//    SEEK_SET);
-//    // assert(answer == 0);
-//    if (answer == 0) {
-//      size = (uint16_t)(fwrite(paper_storage, paper_size, 1, file_spot));
-//      if (size != paper_size) {
-//        printf("write to file failed");
-//      }
-//
-//    } else {
-//      printf("fseek fail PFV");
-//      size = 0;
-//    }
-//    answer = fclose(file_spot);
-//    assert(answer == 0);
-//  } else {
-//    printf("file open fail PFV");
-//    size = 0;
-//  }
-//}
 static void paper_addenda(const char *file_name, const uint16_t paper_size,
                           const char *paper_storage) {
   FILE *file_spot = NULL;
@@ -239,15 +162,20 @@ int main(int argc, char *argv[]) {
   const uint16_t introductory_text_long = (uint16_t)strlen(introductory_text);
   const char *finally_text = "#endif\n";
   const uint16_t finally_text_long = (uint16_t)strlen(finally_text);
+#define DICTIONARY_DATABASE_LONG 0x50000
+  char dictionary_file[DICTIONARY_DATABASE_LONG] = {0};
+  uint32_t dictionary_file_long = 0;
   remove(produce_filename);
 
   paper_addenda(produce_filename, introductory_text_long, introductory_text);
   for (paper_indexFinger = 0;
        paper_indexFinger < MAXIMUM_PAPER_MAGNITUDE && paper_long != 0;
        ++paper_indexFinger) {
-    paper_long = maximum_paper_long;
-    paper_read(filename, paper_indexFinger, &paper_long - paper_deviation,
+    paper_long = maximum_paper_long - paper_deviation;
+    paper_read(filename, paper_indexFinger, &paper_long,
                paper_text + paper_deviation);
+    memcpy(dictionary_file + dictionary_file_long, paper_text + paper_deviation, paper_long);
+    dictionary_file_long += paper_long;
     // printf("%s\n", paper_text);
     // printf("`%.*s' paper_long 0x%X paper_number 0x%X\n", paper_deviation +
     // 10,
@@ -261,7 +189,7 @@ int main(int argc, char *argv[]) {
     //       paper_remains);
     // append produce_text to output file
     // paper_write(produce_filename, paper_number,
-    //                    uint16_t paper_size, char *paper_storage) {
+    //                    uint16_t paper_size, char *paper_storage) 
     paper_addenda(produce_filename, produce_paper_long, produce_paper_text);
 
     // clear paper and set paper long accordingly
@@ -281,14 +209,74 @@ int main(int argc, char *argv[]) {
   paper_addenda(produce_filename, finally_text_long, finally_text);
   //
   // translation file:
-  // for each line generate code for pyash_word, and put foreign_word in 30byte
+  // for each line derive code for pyash_word, and addenda foreign_word in
+  // 30byte
   // area after it.
+  char dictionary_database[DICTIONARY_DATABASE_LONG] = {0};
+  uint32_t dictionary_long = 0;
+  uint32_t line_begin = 0;
+  uint32_t line_long = 0;
+  uint32_t dictionary_file_indexFinger = 0;
+  uint8_t word_long = 0;
+  uint16_t word_begin = 0;
+  uint16_t word_code = 0;
+  uint32_t foreign_word_begin = 0;
+  uint16_t foreign_word_long = 0;
+  //    go through file one line at a time
+    printf("%s:%d dictionary_file %s\n", __FILE__, __LINE__,dictionary_file);
+  for (; dictionary_file_indexFinger < dictionary_file_long;
+       ++dictionary_file_indexFinger) {
+    if (dictionary_file[dictionary_file_indexFinger] == '\n') {
+    printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+      line_long = dictionary_file_indexFinger - line_begin;
+      // get the word to encode
+      first_word_derive(WORD_LONG, dictionary_file + line_begin, &word_long,
+                        &word_begin);
+      // encode the word
+    printf("%s:%d word_long 0x%X\n", __FILE__, __LINE__, word_long);
+      if (word_long == 0) {
+        break;
+      }
+      word_number_encode(word_long, dictionary_file + line_begin + word_begin,
+                         &word_code);
+      // get the foreign word
+      foreign_word_begin = line_begin + word_begin + word_long + TAB_SIZE;
+      foreign_word_long =
+          (uint16_t)(dictionary_file_indexFinger - foreign_word_begin);
+      assert(foreign_word_long < MAXIMUM_FOREIGN_WORD_LONG);
+      // addenda the word code
+      memcpy(dictionary_database + dictionary_long, &word_code, CODE_LONG);
+      dictionary_long += CODE_LONG;
+      // addenda the foreign word
+      memcpy(dictionary_database + dictionary_long,
+             dictionary_file + foreign_word_begin, foreign_word_long);
+      dictionary_long += foreign_word_long;
+      // addenda any extra spaces
+      memset(dictionary_database + dictionary_long, SPACE_LETTER,
+             MAXIMUM_FOREIGN_WORD_LONG - foreign_word_long);
+      dictionary_long += MAXIMUM_FOREIGN_WORD_LONG - foreign_word_long;
+      dictionary_database[dictionary_long -1] = '\n';
+     assert(dictionary_long <=  DICTIONARY_DATABASE_LONG);
+      line_begin = dictionary_file_indexFinger;
+    }
+  }
+  //dictionary_database[dictionary_long-1] = (char) 0;
+
   // append to file after each system page of output
+  //
+  // uint16_t paper_magnitude = (uint16_t)( dictionary_long/MAXIMUM_PAPER_MAGNITUDE);
+  //   paper_long = MAXIMUM_PAPER_MAGNITUDE;
   // for (paper_indexFinger = 0;
-  //     paper_indexFinger < MAXIMUM_PAPER_MAGNITUDE && paper_long != 0;
+  //     paper_indexFinger <= paper_magnitude;
   //     ++paper_indexFinger) {
-  // paper_addenda(produce_filename, finally_text_long, finally_text);
-  //}
+  //   if(dictionary_long < MAXIMUM_PAPER_MAGNITUDE ) {
+  //     paper_long = (uint16_t) dictionary_long;
+  //   }
+    printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+   remove("en.kwon");
+    text_file_addenda(dictionary_long, dictionary_database,"en.kwon");
+  //   dictionary_long -= paper_long;
+  // }
 
   //
   // define file:

@@ -4,38 +4,73 @@
 #include <locale.h>
 
 void paper_read(const char *file_name, const size_t paper_number,
-                       uint16_t *paper_size, char *paper_storage) {
+                        uint16_t *paper_size, char *paper_storage) {
+   FILE *file_spot = NULL;
+   int answer = 0;
+   uint16_t text_spot = 0;
+   uint16_t size = 0;
+   int glyph = (char)0;
+   assert(file_name != 0);
+   assert(strlen(file_name) > 0);
+   assert(paper_storage != NULL);
+   assert(*paper_size >= MAXIMUM_PAPER_LONG);
+   file_spot = fopen(file_name, "r");
+   assert(file_spot != NULL);
+   if (file_spot != NULL) {
+     answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+     // assert(answer == 0);
+     if (answer == 0) {
+       size = (uint16_t)(fread(paper_storage, MAXIMUM_PAPER_LONG, 1, file_spot));
+       if (size != 0) {
+         size = (uint16_t)(size * MAXIMUM_PAPER_LONG);
+       } else {
+         answer =
+             fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+         assert(answer == 0);
+         for (text_spot = 0; text_spot < MAXIMUM_PAPER_LONG; ++text_spot) {
+           glyph = fgetc(file_spot);
+           if (glyph == EOF)
+             break;
+           paper_storage[text_spot] = (char)glyph;
+           ++size;
+         }
+       }
+       // printf("%X size \n", (uint) size);
+     } else {
+       printf("fseek fail PFV");
+       size = 0;
+     }
+     answer = fclose(file_spot);
+     assert(answer == 0);
+   } else {
+     printf("file open fail PFV");
+     size = 0;
+   }
+   *paper_size = size;
+   // assert(*paper_size != 0);
+ }
+ 
+void paper_write(const char *file_name, const size_t paper_number,
+                        uint16_t paper_size, char *paper_storage) {
   FILE *file_spot = NULL;
   int answer = 0;
-  uint16_t text_spot = 0;
   uint16_t size = 0;
-  int glyph = (char)0;
   assert(file_name != 0);
   assert(strlen(file_name) > 0);
   assert(paper_storage != NULL);
-  assert(*paper_size >= MAXIMUM_PAPER_LONG);
-  file_spot = fopen(file_name, "r");
+  assert(paper_size <= MAXIMUM_PAPER_LONG);
+  file_spot = fopen(file_name, "w");
   assert(file_spot != NULL);
   if (file_spot != NULL) {
-    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG,
+    SEEK_SET);
     // assert(answer == 0);
     if (answer == 0) {
-      size = (uint16_t)(fread(paper_storage, MAXIMUM_PAPER_LONG, 1, file_spot));
-      if (size != 0) {
-        size = (uint16_t)(size * MAXIMUM_PAPER_LONG);
-      } else {
-        answer =
-            fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
-        assert(answer == 0);
-        for (text_spot = 0; text_spot < MAXIMUM_PAPER_LONG; ++text_spot) {
-          glyph = fgetc(file_spot);
-          if (glyph == EOF)
-            break;
-          paper_storage[text_spot] = (char)glyph;
-          ++size;
-        }
+      size = (uint16_t)(fwrite(paper_storage, paper_size, 1, file_spot));
+      if (size != paper_size) {
+        printf("write to file failed");
       }
-      // printf("%X size \n", (uint) size);
+
     } else {
       printf("fseek fail PFV");
       size = 0;
@@ -46,15 +81,59 @@ void paper_read(const char *file_name, const size_t paper_number,
     printf("file open fail PFV");
     size = 0;
   }
-  *paper_size = size;
-  // assert(*paper_size != 0);
 }
+//void paper_read(const char *file_name, const size_t paper_number,
+//                       uint16_t *paper_size, char *paper_storage) {
+//  FILE *file_spot = NULL;
+//  int answer = 0;
+//  uint16_t text_spot = 0;
+//  uint16_t size = 0;
+//  int glyph = (char)0;
+//  assert(file_name != 0);
+//  assert(strlen(file_name) > 0);
+//  assert(paper_storage != NULL);
+//  assert(*paper_size >= MAXIMUM_PAPER_LONG);
+//  file_spot = fopen(file_name, "r");
+//  assert(file_spot != NULL);
+//  if (file_spot != NULL) {
+//    answer = fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+//    // assert(answer == 0);
+//    if (answer == 0) {
+//      size = (uint16_t)(fread(paper_storage, MAXIMUM_PAPER_LONG, 1, file_spot));
+//      if (size != 0) {
+//        size = (uint16_t)(size * MAXIMUM_PAPER_LONG);
+//      } else {
+//        answer =
+//            fseek(file_spot, (int)paper_number * MAXIMUM_PAPER_LONG, SEEK_SET);
+//        assert(answer == 0);
+//        for (text_spot = 0; text_spot < MAXIMUM_PAPER_LONG; ++text_spot) {
+//          glyph = fgetc(file_spot);
+//          if (glyph == EOF)
+//            break;
+//          paper_storage[text_spot] = (char)glyph;
+//          ++size;
+//        }
+//      }
+//      // printf("%X size \n", (uint) size);
+//    } else {
+//      printf("fseek fail PFV");
+//      size = 0;
+//    }
+//    answer = fclose(file_spot);
+//    assert(answer == 0);
+//  } else {
+//    printf("file open fail PFV");
+//    size = 0;
+//  }
+//  *paper_size = size;
+//  // assert(*paper_size != 0);
+//}
 
-void text_file_addenda(const int text_long, const char *text,
+void text_file_addenda(const uint32_t text_long, const char *text,
                        const char *filename) {
   FILE *out = fopen(filename, "a");
   assert(out != NULL);
-  int written_text_long = fprintf(out, "%s", text);
+  uint32_t written_text_long = (uint32_t) fprintf(out, "%s", text);
   //printf("text_long %X \n", text_long);
   //printf("written_text_long %X \n", written_text_long);
   assert(written_text_long >= text_long);

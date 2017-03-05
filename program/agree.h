@@ -1,11 +1,12 @@
 #ifndef AGREE_H
 #define AGREE_H
 
+#include "seed.h"
+
 #ifndef HOLY
 #define local 
 #define global
 #endif
-#include "seed.h"
 #define NEWSPAPER_LONG 0x10
 
 

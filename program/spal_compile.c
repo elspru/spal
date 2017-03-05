@@ -188,6 +188,8 @@ int main(int argc, char *argv[]) {
   text_file_addenda(gross_text_long, produce_text, gross_filename);
   printf("TODO break up seed.c into multiple files, encoding, decoding,"
          " compiling\n");
+  printf("TODO xgettext and generate translations,"
+         " compiling\n");
   probe();
   return 0;
 }
