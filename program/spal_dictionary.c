@@ -223,17 +223,17 @@ int main(int argc, char *argv[]) {
   uint32_t foreign_word_begin = 0;
   uint16_t foreign_word_long = 0;
   //    go through file one line at a time
-    printf("%s:%d dictionary_file %s\n", __FILE__, __LINE__,dictionary_file);
+   // printf("%s:%d dictionary_file %s\n", __FILE__, __LINE__,dictionary_file);
   for (; dictionary_file_indexFinger < dictionary_file_long;
        ++dictionary_file_indexFinger) {
     if (dictionary_file[dictionary_file_indexFinger] == '\n') {
-    printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+    //printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
       line_long = dictionary_file_indexFinger - line_begin;
       // get the word to encode
       first_word_derive(WORD_LONG, dictionary_file + line_begin, &word_long,
                         &word_begin);
       // encode the word
-    printf("%s:%d word_long 0x%X\n", __FILE__, __LINE__, word_long);
+    //printf("%s:%d word_long 0x%X\n", __FILE__, __LINE__, word_long);
       if (word_long == 0) {
         break;
       }
@@ -272,9 +272,11 @@ int main(int argc, char *argv[]) {
   //   if(dictionary_long < MAXIMUM_PAPER_MAGNITUDE ) {
   //     paper_long = (uint16_t) dictionary_long;
   //   }
-    printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
-   remove("en.kwon");
-    text_file_addenda(dictionary_long, dictionary_database,"en.kwon");
+    //printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+    produce_filename = "en.kwon";
+   remove(produce_filename);
+    printf("%s:%d writing dictionary database '%s'\n", __FILE__, __LINE__, produce_filename);
+    text_file_addenda(dictionary_long, dictionary_database,produce_filename);
   //   dictionary_long -= paper_long;
   // }
 

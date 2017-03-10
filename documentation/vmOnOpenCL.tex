@@ -1,0 +1,269 @@
+\chapter{Codelet Bytecode Interpreter on GPU}
+\section{Introduction}
+
+The plan is to make a next generation programming language for programming AGI\@.
+Constraints include using human grammar (linguistic universals), being
+compatible with genetic programming and maximize GPU usage, which is some of the
+cheapest and most underutilized processing power we have available.
+
+In this paper only focusing on the maximizing GPU usage via the virtual machine
+which can run the intermediary representation.  The intermediary code can also
+be compiled to C (host code), and OpenCL C (kernels), particularly for more
+traditional data-parallel applications. 
+
+But for the many processes which are not data-parallel, and instead have long
+computations such as compiling \LaTeX{} files, those can be run through a virtual
+machine sitting implemented as an OpenCL kernel.   
+
+In fact the programming language like functional programming languages,
+encourages to keep all the input and output in the main function or monad,
+wheras the ones which are called are all referentially transparent.  
+
+This way can load-balance an application over as many cores as are available,
+including GPUs. 
+
+\section{Previous Works}
+
+There are many works talking about getting OpenCL working inside a virtual
+machine, such as
+KVM\cite{SPE:SPE2166}\cite{Gupta:2009:GGV:1519138.1519141}\cite{ratering2011accelerating}, but that is completely different from having a VM running
+ontop of OpenCL.\@
+
+One that sounds similar is ``OpenCL for Interpreter Implementation''\cite{OpenCLInterpret}
+Though it compiles virtual machine bytecode to OpenCL kernels on CPU, so
+all it really shows is that compiled code runs faster on CPU than interpreted code on CPU.\@
+
+Another similar one is ``Parallel Programming in Actor-Based Applications via OpenCL''
+\cite{Harvey:2015:PPA:2814576.2814732}, which talks about implementing actors 
+while using OpenCL\@. Though actors are quite different from bytecode
+interpreters. And to use this would require translating code to an actor model,
+which may be difficult and not practical for many applications. 
+
+Instead I looked at highly parallel instruction set architectures, in particular 
+the architecture used by the intermediary language is partially inspired by VLIW heads-or-tails architecture 
+\cite{Pan:2001:HTV:502217.502244}
+
+\section{Operating Template}
+
+A codelet is a self-contained code module, the linguistic parallel is an
+independent clause familiarly known as a sentence. 
+
+Each codelet or independent-clause has several phrases for input and output,
+which are indexed by it.
+
+The bytecodes or words that make up the phrases\ref{phraseOverview} are all equal width.
+\begin{table}
+\begin{bytefield}[endianness=little, bitwidth=0.0625\linewidth]{16}
+  \bitheader{0,1,2,3,4,8,12,15}\\
+\bitbox{1}{I} &
+\bitbox{1}{Q}&\bitbox{1}{C}&\bitbox{1}{P} &
+   \bitbox{1}{Q} &   \bitbox{1}{C} & \bitbox{1}{C} 
+ & \bitbox{1}{P} \bitbox{1}{Q} &   \bitbox{1}{C} & \bitbox{1}{C} 
+&   \bitbox{1}{C} & \bitbox{1}{C} & \bitbox{1}{P} & \bitbox{1}{V} 
+& \bitbox{1}{M} \\
+
+\end{bytefield}
+\caption{Codelet layout, composed of one ushort16, 
+a 16bit phrase, a 32bit phrase, and 64bit phrase are demonstrated.}
+\label{phraseOverview}
+\begin{tabulary}{0.5\textwidth}{LL} 
+  I & Index \\
+  Q & Quote denote \\
+  C & Content or quoted value, number of ushorts it is composed of varies depending on bit length of value \\
+  P & Phrase end word or grammatical-case\\
+  V & Verb or command that operates on the phrases\\
+  M & Mood word, or grammatical mood (end of sentence)\\
+  U & Unassigned words after end of sentence \\
+\end{tabulary}
+\end{table}
+
+In the Pyash implementation the codelets are each a ushort16 vector. If that is
+not enough to contain for instance a double16 constant, then the index
+(contained in the first ushort) indicates
+that it is not the final ushort16 (see table-\ref{phraseOverview})
+
+
+Each interpreting worker reads one of the ushort16s in the code array, if index 
+starts with a partial then it skips to the next global id plus work group size
+short16. Though before it does, at the end of each evaluation all the workers
+synchronize to avoid race conditions.  
+
+
+\begin{table}
+\begin{bytefield}[endianness=little, bitwidth=0.0625\linewidth]{16}
+  \bitheader{0,1,4,8,12,15}\\
+  \bitbox{1}{c} &   \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} 
+  & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} 
+  & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} 
+  & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} & \bitbox{1}{p} \\
+  \bitbox{1}{1} &   \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{1}{1} 
+  & \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{1}{1} 
+  & \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{1}{0} 
+  & \bitbox{1}{0} & \bitbox{1}{1} & \bitbox{1}{0} & \bitbox{1}{1} \\
+
+\end{bytefield}
+\caption{Index Overview}
+\label{indexOverview}
+\begin{tabulary}{0.5\textwidth}{LL} 
+  c & Completion bit indicator, if equals 0 then ushort16 is only part of codelet \\
+  p & Phrase or mood bit indicator, if is equal to completion bit, then a phrase
+word or mood word is here.\\
+\end{tabulary}
+\end{table}
+
+If it is marked as final, it checks preceding indexes to get any extra short16's
+that make up the codelet, then evaluates it. 
+
+\subsection{Memory Template}
+The program code is loaded into constant memory. The working memory is in an
+globally indexed local memory heap, and output is to global memory.
+%(see figure~\ref{memoryTemplate}).
+
+Each variable has a reference number in the referential phrase.
+The global index indicates if it has been set, and it's location in the local
+memory heap.  The worker waits until all inputs are set before evaluating the 
+codelet. 
+
+%\begin{figure}
+%\begin{tikzpicture}[node distance=0.5cm and 1cm,>=stealth',bend angle=45,auto]
+%    \node [place,label=above:$C$] (p1) {};
+%    \node [place,label=above:$D$] (d) [below= of p1] {};
+%    \node [transitionV,label=above:$W_1$] (t1) [right= of p1] {}
+%        edge[pre]   (p1)
+%        edge[pre]   (d);
+%    \node [transitionV,label=above:$W_n$] (wn) [right= of d] {}
+%        edge[pre]   (p1)
+%        edge[pre]   (d);
+%    \node [place,tokens=1,label=above:$I$] (p2) [above right=of t1] {}
+%        edge[pre,out=-135,in=30,looseness=1,overlay]   (t1)
+%        edge[post,out=180,in=60,looseness=1,overlay]   (t1);
+%    \node [place,tokens=2,label=above:$P_3$] (p3) [below right=of t1] {}
+%        edge[pre]   (t1);
+%    \node [transitionV,label=above:$T_2$] (t2) [above right=of p3] {}
+%        edge[pre]   (p2)
+%        edge[pre]   (p3)
+%        edge[post,out=-110,in=-50,looseness=2,overlay]  (p1);
+%    \node [place,tokens=1, label=above:$P_4$] (p4) [above right=of t2] {}
+%        edge[pre]   (t2);
+%\end{tikzpicture}
+%\caption{Memory Template}
+%\label{memoryTemplate}
+%\begin{tabular}{ll}
+%  C & Code in constant memory \\
+%  D & input Data in constant memory \\
+%  V & Variable index in global memory \\
+%  W & Worker \\
+%  I & Intermediate values processed in local memory\\
+%  P & Produced data in global memory \\
+%\end{tabular}
+%\end{figure}
+
+
+\subsection{Control Flow}
+Control flow is managed through variables checked by codelet conditionals. 
+
+For example a comparison codelet sets an output variable, 
+all the codelets whose execution requires the knowledge of that comparisons
+value check that it is set and that it passes their internal conditional before
+evaluating their codelet.\ 
+
+\begin{lstlisting}
+result = 1 > 2;
+if (result == true) expression1();
+if (result == false) expression2();
+\end{lstlisting}
+
+
+
+All workers check to see if the program is still running, to avoid hangs.\ 
+
+\begin{lstlisting}
+if (running == TRUE) result = 1 > 2;
+if (running == TRUE && result == TRUE) 
+  expression1();
+if (running == TRUE && result == FALSE) 
+  expression2();
+\end{lstlisting}
+See 
+
+
+\begin{table}
+\begin{bytefield}[endianness=little, bitwidth=0.0625\linewidth]{16}
+  \bitheader{0,1,2,3,4,8,12,15}\\
+\bitbox{1}{I} &
+\bitbox{1}{Q}&\bitbox{1}{C}&\bitbox{1}{P} & \bitbox{1}{Q}
+&\bitbox{1}{C}&\bitbox{1}{P} & \bitbox{1}{V}&\bitbox{1}{M} & 
+\bitbox{1}{Q}&\bitbox{1}{C}&\bitbox{1}{P} & \bitbox{1}{Q}
+&\bitbox{1}{C}&\bitbox{1}{P} & \bitbox{1}{V} \\
+\bitbox{1}{I} &\bitbox{1}{M} & 
+
+\bitbox{1}{Q}&\bitbox{1}{C}&\bitbox{1}{P} & \bitbox{1}{Q} &   
+\bitbox{1}{C} & \bitbox{1}{C} & \bitbox{1}{P} 
+\bitbox{1}{Q} 
+&   \bitbox{1}{C}  \bitbox{1}{C} &\bitbox{1}{P} & \bitbox{1}{V} 
+& \bitbox{1}{M} & \bitbox{1}{U} \\
+
+\end{bytefield}
+\caption{Multi ushort16 Codelet layout, includes two conditional clauses,
+a 16bit phrase, a 32bit phrase, and 64bit phrase, are demonstrated.}
+\label{multiPhraseOverview}
+\begin{tabulary}{0.5\textwidth}{LL} 
+  I & Index \\
+  Q & Quote denote \\
+  C & Content or quoted value, number of ushorts it is composed of varies depending on bit length of value \\
+  P & Phrase end word or grammatical-case\\
+  V & Verb or command that operates on the phrases\\
+  M & Mood word, or grammatical mood (end of clause)\\
+  U & Unassigned words after end of sentence \\
+\end{tabulary}
+\end{table}
+
+
+If there are more layers of conditionals, then worker has to check them all.\ 
+
+\begin{lstlisting}
+if (running == TRUE && result == TRUE) 
+  result2 = 4 > 2;
+if (running == TRUE && result == TRUE && 
+    result2 == TRUE) 
+  expression3();
+\end{lstlisting}
+Can see an example of the layouf of a codelet that has multiple conditionals in
+figure~\ref{multiPhraseOverview}
+
+
+\subsubsection{Loops}
+All loops that don't break or return should simply be unrolled. 
+
+Otherwise there are two options for implementation, 
+
+The prefered option is simply to only have static length for loops, 
+and always unroll them, having a variable to check if it has been broken.  
+
+Of course some for loop lengths are set at runtime
+for those can have a special looping variable which each codelet checks to see
+if it should continue. It can check after the synchronization point to know if
+it should jump to the next codelet or continue evaluating this one. 
+
+\subsubsection{Jumps}
+Jumps may be necessary for some pieces of low-probability code. If there is a
+branch to a chunk of code, the branching worker can set a jump variable with the
+location (in constant memory) and length of the code.  Then other workers would
+jump to evaluating their corresponding part of that code, or continue on the
+main code if they don't fit. 
+
+
+\section{Speculation}
+It may not lead to significant performance gain, as it is interpreted rather
+than compiled, though it does inherently support superscalar execution,
+out-of-order execution, and speculative execution simply because all the
+codelets are executed in parallel, so
+may be quite fast, especially if implemented as a core architecure.
+
+\section{Conclusion and Further Work}
+
+This programming language may lead to increased usage of GPU's for a greater
+diversity of tasks. 
+As of this writing I only have a basic prototype of the language, though with
+more time and effort it can become fully functional. 
+
