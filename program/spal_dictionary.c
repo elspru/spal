@@ -25,16 +25,14 @@ contact: streondj at gmail dot com
 #include <string.h>
 
 #include "agree.h"
+#include "dialogue.h"
 #include "genericOpenCL.h"
 #include "parser.h"
 #include "seed.h"
-#include "dialogue.h"
 #define VALGRIND
 #define NEWLINE '\n'
 #define HOLLOW_LETTER ' '
 
-#define MAXIMUM_PAPER_LONG 4096
-#define MAXIMUM_PAPER_MAGNITUDE 4096
 static void paper_addenda(const char *file_name, const uint16_t paper_size,
                           const char *paper_storage) {
   FILE *file_spot = NULL;
@@ -162,7 +160,6 @@ int main(int argc, char *argv[]) {
   const uint16_t introductory_text_long = (uint16_t)strlen(introductory_text);
   const char *finally_text = "#endif\n";
   const uint16_t finally_text_long = (uint16_t)strlen(finally_text);
-#define DICTIONARY_DATABASE_LONG 0x50000
   char dictionary_file[DICTIONARY_DATABASE_LONG] = {0};
   uint32_t dictionary_file_long = 0;
   remove(produce_filename);
@@ -174,7 +171,8 @@ int main(int argc, char *argv[]) {
     paper_long = maximum_paper_long - paper_deviation;
     paper_read(filename, paper_indexFinger, &paper_long,
                paper_text + paper_deviation);
-    memcpy(dictionary_file + dictionary_file_long, paper_text + paper_deviation, paper_long);
+    memcpy(dictionary_file + dictionary_file_long, paper_text + paper_deviation,
+           paper_long);
     dictionary_file_long += paper_long;
     // printf("%s\n", paper_text);
     // printf("`%.*s' paper_long 0x%X paper_number 0x%X\n", paper_deviation +
@@ -189,7 +187,7 @@ int main(int argc, char *argv[]) {
     //       paper_remains);
     // append produce_text to output file
     // paper_write(produce_filename, paper_number,
-    //                    uint16_t paper_size, char *paper_storage) 
+    //                    uint16_t paper_size, char *paper_storage)
     paper_addenda(produce_filename, produce_paper_long, produce_paper_text);
 
     // clear paper and set paper long accordingly
@@ -223,17 +221,18 @@ int main(int argc, char *argv[]) {
   uint32_t foreign_word_begin = 0;
   uint16_t foreign_word_long = 0;
   //    go through file one line at a time
-   // printf("%s:%d dictionary_file %s\n", __FILE__, __LINE__,dictionary_file);
+  // printf("%s:%d dictionary_file %s\n", __FILE__, __LINE__,dictionary_file);
   for (; dictionary_file_indexFinger < dictionary_file_long;
        ++dictionary_file_indexFinger) {
     if (dictionary_file[dictionary_file_indexFinger] == '\n') {
-    //printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+      // printf("%s:%d dictionary_long 0x%X\n", __FILE__,
+      // __LINE__,dictionary_long);
       line_long = dictionary_file_indexFinger - line_begin;
       // get the word to encode
       first_word_derive(WORD_LONG, dictionary_file + line_begin, &word_long,
                         &word_begin);
       // encode the word
-    //printf("%s:%d word_long 0x%X\n", __FILE__, __LINE__, word_long);
+      // printf("%s:%d word_long 0x%X\n", __FILE__, __LINE__, word_long);
       if (word_long == 0) {
         break;
       }
@@ -255,16 +254,17 @@ int main(int argc, char *argv[]) {
       memset(dictionary_database + dictionary_long, SPACE_LETTER,
              MAXIMUM_FOREIGN_WORD_LONG - foreign_word_long);
       dictionary_long += MAXIMUM_FOREIGN_WORD_LONG - foreign_word_long;
-      dictionary_database[dictionary_long -1] = '\n';
-     assert(dictionary_long <=  DICTIONARY_DATABASE_LONG);
+      dictionary_database[dictionary_long - 1] = '\n';
+      assert(dictionary_long <= DICTIONARY_DATABASE_LONG);
       line_begin = dictionary_file_indexFinger;
     }
   }
-  //dictionary_database[dictionary_long-1] = (char) 0;
+  // dictionary_database[dictionary_long-1] = (char) 0;
 
   // append to file after each system page of output
   //
-  // uint16_t paper_magnitude = (uint16_t)( dictionary_long/MAXIMUM_PAPER_MAGNITUDE);
+  // uint16_t paper_magnitude = (uint16_t)(
+  // dictionary_long/MAXIMUM_PAPER_MAGNITUDE);
   //   paper_long = MAXIMUM_PAPER_MAGNITUDE;
   // for (paper_indexFinger = 0;
   //     paper_indexFinger <= paper_magnitude;
@@ -272,11 +272,12 @@ int main(int argc, char *argv[]) {
   //   if(dictionary_long < MAXIMUM_PAPER_MAGNITUDE ) {
   //     paper_long = (uint16_t) dictionary_long;
   //   }
-    //printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
-    produce_filename = "en.kwon";
-   remove(produce_filename);
-    printf("%s:%d writing dictionary database '%s'\n", __FILE__, __LINE__, produce_filename);
-    text_file_addenda(dictionary_long, dictionary_database,produce_filename);
+  // printf("%s:%d dictionary_long 0x%X\n", __FILE__, __LINE__,dictionary_long);
+  produce_filename = "probe/en.kwon";
+  remove(produce_filename);
+  printf("%s:%d writing dictionary database '%s'\n", __FILE__, __LINE__,
+         produce_filename);
+  text_file_addenda(dictionary_long, dictionary_database, produce_filename);
   //   dictionary_long -= paper_long;
   // }
 

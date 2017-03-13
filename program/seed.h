@@ -98,6 +98,8 @@ contact: streondj at gmail dot com
 #define TONE_THICK 2
 #define TABLET_BYTE_LONG 0x20
 #define TABLET_LONG 0x10
+#define TABLET_PAD_LONG 0x200
+#define DICTIONARY_DATABASE_LONG 0x50000
 #define CODE_NAME_WORD_LONG 0x4
 #define TABLET_WORD_LONG 0xF
 #define MAX_INDEPENDENTCLAUSE_TABLET 0x4
@@ -220,6 +222,8 @@ void code_name_derive(const uint8_t tablet_magnitude, const v16us *tablet,
                       uint64_t *code_name);
 
 uint16_t v16us_read(const uint8_t indexFinger, const v16us vector);
+void v16us_write(const uint8_t indexFinger, const uint16_t number,
+                 v16us *vector);
 uint64_t v4us_uint64_translation(const v4us vector);
 void code_opencl_translate(const uint16_t recipe_magnitude, const v16us *recipe,
                            uint16_t *text_long, char *produce_text,

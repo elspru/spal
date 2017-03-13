@@ -132,6 +132,9 @@ int main(int argc, char *argv[]) {
   // print binary
 
   uint16_t recipe_indexFinger = 0;
+  char gross_code[8 * TABLET_BYTE_LONG] = {0};
+  uint16_t code_word = 0;
+  uint16_t gross_code_long = 0;
   for (recipe_indexFinger = 0; recipe_indexFinger < recipe_magnitude;
        ++recipe_indexFinger) {
     printf("\n%s:%d\trecipe[%X]", __FILE__, __LINE__, recipe_indexFinger);
@@ -139,11 +142,19 @@ int main(int argc, char *argv[]) {
          ++tablet_indexFinger) {
       if (tablet_indexFinger % 0x10 == 0)
         printf("\n");
-      printf("%04X ",
-             (uint)v16us_read(tablet_indexFinger, recipe[recipe_indexFinger]));
+
+      code_word =
+          (uint16_t)v16us_read(tablet_indexFinger, recipe[recipe_indexFinger]);
+      printf("%04X ", code_word);
+      gross_code[recipe_indexFinger * TABLET_BYTE_LONG +
+                 tablet_indexFinger * 2] = (char)code_word;
+      gross_code[recipe_indexFinger * TABLET_BYTE_LONG +
+                 tablet_indexFinger * 2 + 1] = (char)(code_word >> 8);
+      gross_code_long += 2;
     }
   }
   printf("\n");
+  paper_write("probe/trop.byin", 0, gross_code_long, gross_code);
 
   // printf(" yep2 recipe_magnitude 0x%X \n", recipe_magnitude);
   // printf("recipe_magnitude 0x%X\n", recipe_magnitude);
